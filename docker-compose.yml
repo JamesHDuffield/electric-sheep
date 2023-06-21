@@ -1,0 +1,20 @@
+services:
+  api:
+    build: .
+    environment:
+      - OPENAI_API_KEY
+      - ROCKET_DATABASES
+    ports:
+      - "8000:8000"
+  database:
+    image: postgres:15.3
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL
+      - PGADMIN_DEFAULT_PASSWORD
+    ports:
+      - "8001:80"

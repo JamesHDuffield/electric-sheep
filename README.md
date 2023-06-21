@@ -3,10 +3,6 @@
 
 ## Development
 
-- Create `.env` file at project root containing:
-
-```
-OPENAI_API_KEY=<api key>
-```
-
+- Copy `.env.example` to `.env` and provide values
+- Open vscode dev container
 - `cargo run`

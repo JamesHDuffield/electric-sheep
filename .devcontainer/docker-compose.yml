@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  dev:
+    image: rust:1
+    environment:
+      - OPENAI_API_KEY
+      - ROCKET_DATABASES
+    volumes:
+      - ..:/workspaces:cached
+    command: /bin/sh -c "while sleep 1000; do :; done"
+ 

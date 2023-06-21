@@ -1,40 +1,28 @@
 #[macro_use] extern crate rocket;
-extern crate dotenv;
 
-use rocket::serde::{Deserialize, json::Json};
+use rocket_sync_db_pools::{diesel, database};
 use openai_api_rust::*;
 use openai_api_rust::chat::*;
-use dotenv::dotenv;
 
-#[derive(Deserialize)]
-#[serde(crate = "rocket::serde")]
-struct Data<'a> {
-    description: &'a str,
-    complete: bool
+#[database("db")]
+struct PgDatabase(diesel::PgConnection);
+
+fn load_from_db(_connection: &diesel::PgConnection) -> () {
+    // Do something with connection, return some data.
+    println!("made it");
 }
 
 #[get("/")]
-fn index() -> String {
+async fn index(db: PgDatabase) -> () {
+    db.run(|connection| load_from_db(connection)).await;
     chat("Hello!".to_string()).unwrap()
-}
-
-#[post("/todo", data = "<data>")]
-fn todo(data: Json<Data<'_>>) -> &str {
-    data.description.clone()
-}
-
-#[get("/hello/<name>")]
-fn hello(name: &str) -> String {
-    format!("Hello, {}!", name)
 }
 
 #[launch]
 fn rocket() -> _ {
-    dotenv().ok();
     rocket::build()
+        .attach(PgDatabase::fairing())
         .mount("/", routes![index])
-        .mount("/", routes![todo])
-        .mount("/", routes![hello])
 }
 
 fn chat(input: String) -> Result<String, Error> {
@@ -63,19 +51,4 @@ fn chat(input: String) -> Result<String, Error> {
         .clone()
         .ok_or(Error::ApiError("AI generated no message in first response".to_string()))?;
     Ok(message.content)
-}
-
-#[cfg(test)]
-mod test {
-    use super::rocket;
-    use rocket::local::blocking::Client;
-    use rocket::http::Status;
-
-    #[test]
-    fn index() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
-        let response = client.get(uri!(crate::index)).dispatch();
-        assert_eq!(response.status(), Status::Ok);
-        assert_eq!(response.into_string().unwrap(), "Hello, world!");
-    }
 }
