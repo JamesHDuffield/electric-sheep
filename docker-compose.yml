@@ -3,7 +3,7 @@ services:
     build: .
     environment:
       - OPENAI_API_KEY
-      - ROCKET_DATABASES
+      - ROCKET_DATABASES={db={url="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_USER}"}}
     ports:
       - "8000:8000"
   database:

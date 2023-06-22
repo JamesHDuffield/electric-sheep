@@ -4,7 +4,8 @@ services:
     image: rust:1
     environment:
       - OPENAI_API_KEY
-      - ROCKET_DATABASES
+      - ROCKET_DATABASES={db={url="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_USER}"}}
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_USER}
     volumes:
       - ..:/workspaces:cached
     command: /bin/sh -c "while sleep 1000; do :; done"
