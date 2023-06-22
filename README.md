@@ -12,3 +12,7 @@ Voight-Kampff meets ChatGPT.
 
 - `cargo install diesel_cli --no-default-features --features postgres`
 - `diesel migration run`
+
+## Schema
+
+- Regenerate with `diesel print-schema > src/schema.rs`
