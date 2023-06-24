@@ -10,6 +10,10 @@ CREATE TABLE defects (
     FOREIGN KEY(category_id) REFERENCES categories(id)
 );
 
+CREATE TABLE chats (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY
+);
+
 -- Seeding
 
 INSERT INTO categories (description)

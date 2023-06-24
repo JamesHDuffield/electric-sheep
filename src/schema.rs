@@ -9,6 +9,12 @@ diesel::table! {
 }
 
 diesel::table! {
+    chats (id) {
+        id -> Uuid,
+    }
+}
+
+diesel::table! {
     defects (id) {
         id -> Int4,
         text -> Text,
@@ -20,5 +26,6 @@ diesel::joinable!(defects -> categories (category_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     categories,
+    chats,
     defects,
 );
