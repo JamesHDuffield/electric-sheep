@@ -22,10 +22,23 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    messages (id) {
+        id -> Int4,
+        #[max_length = 10]
+        role -> Varchar,
+        content -> Text,
+        created_at -> Timestamp,
+        chat_id -> Uuid,
+    }
+}
+
 diesel::joinable!(defects -> categories (category_id));
+diesel::joinable!(messages -> chats (chat_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     categories,
     chats,
     defects,
+    messages,
 );

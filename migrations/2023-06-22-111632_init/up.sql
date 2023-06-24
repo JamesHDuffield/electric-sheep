@@ -14,6 +14,15 @@ CREATE TABLE chats (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY
 );
 
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    role VARCHAR(10) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    chat_id uuid NOT NULL,
+    FOREIGN KEY(chat_id) REFERENCES chats(id)
+);
+
 -- Seeding
 
 INSERT INTO categories (description)
