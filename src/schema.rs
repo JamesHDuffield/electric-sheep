@@ -25,7 +25,7 @@ diesel::table! {
 diesel::table! {
     messages (id) {
         id -> Int4,
-        #[max_length = 10]
+        #[max_length = 12]
         role -> Varchar,
         content -> Text,
         created_at -> Timestamp,

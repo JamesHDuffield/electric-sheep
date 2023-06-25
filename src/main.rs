@@ -5,7 +5,13 @@ mod models;
 mod ai;
 
 use models::*;
+use models::RecordedMessage;
+use openai_api_rust::Message;
 use openai_api_rust::Role;
+use rocket::form::Form;
+use rocket::response::stream::{EventStream, Event};
+use rocket::tokio::sync::broadcast::{channel, Sender, error::RecvError};
+use rocket::{State, Shutdown};
 use rocket::serde::json::Json;
 use rocket::serde::json::serde_json;
 use rocket_sync_db_pools::diesel::*;
@@ -13,6 +19,7 @@ use rocket_sync_db_pools::database;
 use rand::seq::SliceRandom;
 use rocket::serde::Serialize;
 use uuid::Uuid;
+use rocket::tokio::select;
 
 #[database("db")]
 struct PgDatabase(PgConnection);
@@ -21,6 +28,11 @@ struct PgDatabase(PgConnection);
 #[serde(crate = "rocket::serde")]
 struct StartResponse {
     chat_id: Uuid,
+}
+
+#[derive(Debug, Clone, FromForm)]
+struct ReplyRequest {
+    content: String,
 }
 
 fn select_random_defect(connection: &mut PgConnection) -> String {
@@ -35,25 +47,22 @@ fn create_chat(connection: &mut PgConnection) -> Uuid {
     diesel::insert_into(self::schema::chats::dsl::chats).default_values().returning(schema::chats::id).get_result(connection).expect("Failed to create chat")
 }
 
-fn record_message(connection: &mut PgConnection, chat_id: &Uuid, role: &Role, content: &str) {
+fn get_chat_messages(connection: &mut PgConnection, chat_id: &Uuid) -> Vec<Message> {
+    let messages: Vec<RecordedMessage> = self::schema::messages::dsl::messages.filter(self::schema::messages::dsl::chat_id.eq(chat_id)).load::<RecordedMessage>(connection).expect("Issue retrieving chat history");
+    messages.iter().map(|msg| Message { content: msg.content.clone(), role: serde_json::from_str(&msg.role).unwrap() }).collect()
+}
+
+fn record_message(connection: &mut PgConnection, chat_id: &Uuid, message: &Message) {
+    let role = serde_json::to_string(&message.role).unwrap(); // TODO store without ""
+    println!("{}", role);
     diesel::insert_into(self::schema::messages::dsl::messages)
         .values((
-            self::schema::messages::dsl::content.eq(content),
-            self::schema::messages::dsl::role.eq(serde_json::to_string(role).unwrap()),
+            self::schema::messages::dsl::content.eq(message.content.clone()),
+            self::schema::messages::dsl::role.eq(role),
             self::schema::messages::dsl::chat_id.eq(chat_id),
         ))
         .execute(connection)
         .expect("Failed to insert message");
-}
-
-#[get("/")]
-fn index() -> String {
-    ai::chat_completion("Hello!".to_string()).unwrap()
-}
-
-#[get("/defect")]
-async fn defect(db: PgDatabase) -> String {
-    db.run(|connection| select_random_defect(connection)).await
 }
 
 #[post("/start")]
@@ -63,23 +72,73 @@ async fn start(db: PgDatabase) -> Json<StartResponse> {
         let defect = select_random_defect(connection);
         let prompt = format!("You are a bot with defect '{}'", defect);
         let chat_id = create_chat(connection);
-        record_message(connection, &chat_id, &Role::System, &prompt);
         (chat_id, prompt) 
     }).await;
-    // TODO Send to AI to get started and post to queue
-    println!("{}", prompt);
-    // Response
+    // Send to AI
+    let system_message = Message { role: Role::System, content: prompt };
+    let ai_response = ai::chat_completion(vec![ system_message.clone() ]).unwrap();
+    // Record messages to DB
+    db.run(move |connection| {
+        record_message(connection, &chat_id, &system_message);
+        record_message(connection, &chat_id, &ai_response);
+    }).await;
     Json(StartResponse {
         chat_id
     })
 }
 
+#[get("/join/<chat_id>")]
+async fn join(db: PgDatabase, chat_id: Uuid, queue: &State<Sender<Message>>, mut end: Shutdown) -> EventStream![] {
+    let mut rx = queue.subscribe();
+    // Get historical messages
+    let records = db.run(move |connection| get_chat_messages(connection, &chat_id)).await;
+    EventStream! {
+        // Pipe out existing
+        for record in records {
+            yield Event::json(&record);
+        }
+        // Listen for new messages
+        loop {
+            let msg = select! {
+                msg = rx.recv() => match msg {
+                    Ok(msg) => msg, // TODO filter by chat_id
+                    Err(RecvError::Closed) => break,
+                    Err(RecvError::Lagged(_)) => continue,
+                },
+                _ = &mut end => break,
+            };
+
+            yield Event::json(&msg);
+        }
+    }
+}
+
+#[post("/reply/<chat_id>", data = "<form>")]
+async fn reply(db: PgDatabase, chat_id: Uuid, form: Form<ReplyRequest>, queue: &State<Sender<Message>>) {
+    // Get history
+    let mut history = db.run(move |connection| get_chat_messages(connection, &chat_id)).await;
+    // Append new message    
+    let user_message = Message { role: Role::User, content: form.content.clone() };
+    history.push(user_message.clone());
+    // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
+    let _res = queue.send(user_message.clone());
+    // Send to AI
+    let ai_response = ai::chat_completion(history).unwrap();
+    // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
+    let _res = queue.send(ai_response.clone());
+    // Record
+    db.run(move |connection| {
+        record_message(connection, &chat_id, &user_message);
+        record_message(connection, &chat_id, &ai_response);
+    }).await;
+}
 
 #[launch]
 fn rocket() -> _ {
     rocket::build()
         .attach(PgDatabase::fairing())
-        .mount("/", routes![index, defect, start])
+        .manage(channel::<Message>(1024).0)
+        .mount("/", routes![start, join, reply])
 }
 
 

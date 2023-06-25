@@ -306,6 +306,7 @@ dependencies = [
  "rand 0.8.5",
  "rocket",
  "rocket_sync_db_pools",
+ "serde",
  "uuid",
 ]
 
@@ -1448,6 +1449,7 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "ubyte",
+ "uuid",
  "version_check 0.9.4",
  "yansi",
 ]
@@ -1493,6 +1495,7 @@ dependencies = [
  "time 0.3.22",
  "tokio",
  "uncased",
+ "uuid",
 ]
 
 [[package]]

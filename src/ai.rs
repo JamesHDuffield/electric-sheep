@@ -1,12 +1,12 @@
 use openai_api_rust::*;
 use openai_api_rust::chat::*;
 
-pub fn chat_completion(input: String) -> Result<String, Error> {
+pub fn chat_completion(messages: Vec<Message>) -> Result<Message, Error> {
     let auth = Auth::from_env().map_err(|error| Error::ApiError(error))?;
     let openai = OpenAI::new(auth, "https://api.openai.com/v1/");
     let body = ChatBody {
         model: "gpt-3.5-turbo".to_string(),
-        max_tokens: Some(7),
+        max_tokens: Some(50),
         temperature: Some(0_f32),
         top_p: Some(0_f32),
         stream: None,
@@ -16,7 +16,7 @@ pub fn chat_completion(input: String) -> Result<String, Error> {
         logit_bias: None,
         user: None,
         n: None,
-        messages: vec![Message { role: Role::User, content: input }],
+        messages,
     };
     let response: completions::Completion = openai.chat_completion_create(&body)?;
     let message = response
@@ -26,5 +26,5 @@ pub fn chat_completion(input: String) -> Result<String, Error> {
         .message
         .clone()
         .ok_or(Error::ApiError("AI generated no message in first response".to_string()))?;
-    Ok(message.content)
+    Ok(message)
 }

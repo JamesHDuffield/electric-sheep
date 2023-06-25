@@ -1,10 +1,11 @@
 use std::time::SystemTime;
 use diesel::prelude::*;
 use uuid::Uuid;
+use rocket::serde::Serialize;
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Serialize, Clone, Debug)]
 #[diesel(table_name = messages)]
-pub struct Message {
+pub struct RecordedMessage {
     pub id: i32,
     pub role: String,
     pub content: String,
