@@ -35,6 +35,12 @@ struct ReplyRequest {
     content: String,
 }
 
+#[derive(Debug, Clone)]
+struct QueueMessage {
+    chat_id: Uuid,
+    message: Message
+}
+
 fn select_random_defect(connection: &mut PgConnection) -> String {
     let categories = self::schema::categories::dsl::categories.load::<Categories>(connection).expect("Issue retrieving categories");
     let category = categories.choose(&mut rand::thread_rng()).expect("Issue selecting category");
@@ -88,7 +94,7 @@ async fn start(db: PgDatabase) -> Json<StartResponse> {
 }
 
 #[get("/join/<chat_id>")]
-async fn join(db: PgDatabase, chat_id: Uuid, queue: &State<Sender<Message>>, mut end: Shutdown) -> EventStream![] {
+async fn join(db: PgDatabase, chat_id: Uuid, queue: &State<Sender<QueueMessage>>, mut end: Shutdown) -> EventStream![] {
     let mut rx = queue.subscribe();
     // Get historical messages
     let records = db.run(move |connection| get_chat_messages(connection, &chat_id)).await;
@@ -101,7 +107,12 @@ async fn join(db: PgDatabase, chat_id: Uuid, queue: &State<Sender<Message>>, mut
         loop {
             let msg = select! {
                 msg = rx.recv() => match msg {
-                    Ok(msg) => msg, // TODO filter by chat_id
+                    Ok(msg) => {
+                        if msg.chat_id != chat_id {
+                            continue;
+                        }
+                        msg.message
+                    },
                     Err(RecvError::Closed) => break,
                     Err(RecvError::Lagged(_)) => continue,
                 },
@@ -114,18 +125,18 @@ async fn join(db: PgDatabase, chat_id: Uuid, queue: &State<Sender<Message>>, mut
 }
 
 #[post("/reply/<chat_id>", data = "<form>")]
-async fn reply(db: PgDatabase, chat_id: Uuid, form: Form<ReplyRequest>, queue: &State<Sender<Message>>) {
+async fn reply(db: PgDatabase, chat_id: Uuid, form: Form<ReplyRequest>, queue: &State<Sender<QueueMessage>>) {
     // Get history
     let mut history = db.run(move |connection| get_chat_messages(connection, &chat_id)).await;
     // Append new message    
     let user_message = Message { role: Role::User, content: form.content.clone() };
     history.push(user_message.clone());
     // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
-    let _res = queue.send(user_message.clone());
+    let _res = queue.send(QueueMessage { chat_id: chat_id.clone(), message: user_message.clone() });
     // Send to AI
     let ai_response = ai::chat_completion(history).unwrap();
     // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
-    let _res = queue.send(ai_response.clone());
+    let _res = queue.send(QueueMessage { chat_id: chat_id.clone(), message: ai_response.clone() });
     // Record
     db.run(move |connection| {
         record_message(connection, &chat_id, &user_message);
@@ -137,7 +148,7 @@ async fn reply(db: PgDatabase, chat_id: Uuid, form: Form<ReplyRequest>, queue: &
 fn rocket() -> _ {
     rocket::build()
         .attach(PgDatabase::fairing())
-        .manage(channel::<Message>(1024).0)
+        .manage(channel::<QueueMessage>(1024).0)
         .mount("/", routes![start, join, reply])
 }
 
