@@ -3,9 +3,10 @@
 mod schema;
 mod models;
 mod ai;
+mod chat;
 
 use models::*;
-use models::RecordedMessage;
+use chat::*;
 use openai_api_rust::Message;
 use openai_api_rust::Role;
 use rocket::form::Form;
@@ -13,10 +14,8 @@ use rocket::response::stream::{EventStream, Event};
 use rocket::tokio::sync::broadcast::{channel, Sender, error::RecvError};
 use rocket::{State, Shutdown};
 use rocket::serde::json::Json;
-use rocket::serde::json::serde_json;
 use rocket_sync_db_pools::diesel::*;
 use rocket_sync_db_pools::database;
-use rand::seq::SliceRandom;
 use rocket::serde::Serialize;
 use uuid::Uuid;
 use rocket::tokio::select;
@@ -41,41 +40,11 @@ struct QueueMessage {
     message: Message
 }
 
-fn select_random_defect(connection: &mut PgConnection) -> String {
-    let categories = self::schema::categories::dsl::categories.load::<Categories>(connection).expect("Issue retrieving categories");
-    let category = categories.choose(&mut rand::thread_rng()).expect("Issue selecting category");
-    let defects = self::schema::defects::dsl::defects.filter(schema::defects::category_id.eq(category.id)).load::<Defect>(connection).expect("Issue retrieving defects");
-    let defect = defects.choose(&mut rand::thread_rng()).expect("Issue selecting defect");
-    defect.text.clone()
-}
-
-fn create_chat(connection: &mut PgConnection) -> Uuid {
-    diesel::insert_into(self::schema::chats::dsl::chats).default_values().returning(schema::chats::id).get_result(connection).expect("Failed to create chat")
-}
-
-fn get_chat_messages(connection: &mut PgConnection, chat_id: &Uuid) -> Vec<Message> {
-    let messages: Vec<RecordedMessage> = self::schema::messages::dsl::messages.filter(self::schema::messages::dsl::chat_id.eq(chat_id)).load::<RecordedMessage>(connection).expect("Issue retrieving chat history");
-    messages.iter().map(|msg| Message { content: msg.content.clone(), role: serde_json::from_str(&msg.role).unwrap() }).collect()
-}
-
-fn record_message(connection: &mut PgConnection, chat_id: &Uuid, message: &Message) {
-    let role = serde_json::to_string(&message.role).unwrap(); // TODO store without ""
-    println!("{}", role);
-    diesel::insert_into(self::schema::messages::dsl::messages)
-        .values((
-            self::schema::messages::dsl::content.eq(message.content.clone()),
-            self::schema::messages::dsl::role.eq(role),
-            self::schema::messages::dsl::chat_id.eq(chat_id),
-        ))
-        .execute(connection)
-        .expect("Failed to insert message");
-}
-
 #[post("/start")]
 async fn start(db: PgDatabase) -> Json<StartResponse> {
     // Create a starting prompt and record chat and messages
     let (chat_id, prompt) = db.run(|connection| {
-        let defect = select_random_defect(connection);
+        let defect = Defect::select_random_defect(connection);
         let prompt = format!("You are a bot with defect '{}'", defect);
         let chat_id = create_chat(connection);
         (chat_id, prompt) 
