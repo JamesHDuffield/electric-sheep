@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<head>
+    <title>
+        Playground
+    </title>
+    <style>
+        body {
+            font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        }
+    </style>
+    <script>
+        async function start() {
+            const response = await fetch("api/start", { method: 'POST' });
+            const chat = await response.json();
+            window.location.href = `chat.html?id=${chat.chat_id}`;
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Does ChatGPT dream of electric sheep?</h1>
+    <button onclick="start()">Start a new chat</button>
+</body>
+</html>

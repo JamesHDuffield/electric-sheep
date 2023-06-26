@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<head>
+    <title>
+        Playground
+    </title>
+    <style>
+        body {
+            font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        }
+        input {
+            width: 100%;
+            height: 2em;
+        }
+    </style>
+    <script>
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+
+        const stream = new EventSource(`/api/join/${urlParams.get('id')}`);
+
+        stream.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            const newChat = document.createElement("li");
+            newChat.innerHTML = `<b>${message.role}</b>: ${message.content}`; // I know :(
+            document.getElementById("chat").appendChild(newChat);
+        };
+
+        function send() {
+            document.form.action = `/api/reply/${urlParams.get('id')}`;
+            document.form.submit();
+            setTimeout(() => document.form.reset(), 0); // Nice
+            return false;
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Does ChatGPT dream of electric sheep?</h1>
+    <ul id="chat"></ul>
+    <form name="form" method="POST" target="frame" onsubmit="send(this);">
+        <input type="text" name="content" id="reply"><input type="button" value="Submit" onclick="send();">
+    </form>
+</body>
+<iframe name="frame" style="display:none;"></iframe>
+</html>

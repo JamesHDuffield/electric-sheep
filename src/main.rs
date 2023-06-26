@@ -14,6 +14,7 @@ use rocket::form::Form;
 use rocket::response::stream::{EventStream, Event};
 use rocket::tokio::sync::broadcast::{channel, Sender, error::RecvError};
 use rocket::{State, Shutdown};
+use rocket::fs::{FileServer, relative};
 use rocket::serde::json::Json;
 use rocket_sync_db_pools::diesel::*;
 use rocket_sync_db_pools::database;
@@ -99,14 +100,14 @@ async fn join(db: PgDatabase, chat_id: Uuid, queue: &State<Sender<QueueMessage>>
 }
 
 #[post("/reply/<chat_id>", data = "<form>")]
-async fn reply(db: PgDatabase, chat_id: Uuid, form: Form<ReplyRequest>, queue: &State<Sender<QueueMessage>>) {
-    // Get history
-    let mut history = db.run(move |connection| get_chat_messages(connection, &chat_id)).await;
-    // Append new message    
+async fn reply(db: PgDatabase, chat_id: Uuid, form: Form<ReplyRequest>, queue: &State<Sender<QueueMessage>>) {    
     let user_message = Message { role: Role::User, content: form.content.clone() };
-    history.push(user_message.clone());
     // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
     let _res = queue.send(QueueMessage { chat_id: chat_id.clone(), message: user_message.clone() });
+    // Get history
+    let mut history = db.run(move |connection| get_chat_messages(connection, &chat_id)).await;
+    // Append new message
+    history.push(user_message.clone());
     // Send to AI
     let ai_response = ai::chat_completion(history).unwrap();
     // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
@@ -123,7 +124,8 @@ fn rocket() -> _ {
     rocket::build()
         .attach(PgDatabase::fairing())
         .manage(channel::<QueueMessage>(1024).0)
-        .mount("/", routes![start, join, reply])
+        .mount("/api", routes![start, join, reply])
+        .mount("/", FileServer::from(relative!("/static")))
 }
 
 
