@@ -5,6 +5,7 @@ mod models;
 mod ai;
 mod chat;
 
+use ai::prompt_from_defect;
 use models::*;
 use chat::*;
 use openai_api_rust::Message;
@@ -45,7 +46,7 @@ async fn start(db: PgDatabase) -> Json<StartResponse> {
     // Create a starting prompt and record chat and messages
     let (chat_id, prompt) = db.run(|connection| {
         let defect = Defect::select_random_defect(connection);
-        let prompt = format!("You are a bot with defect '{}'", defect);
+        let prompt = prompt_from_defect(defect);
         let chat_id = create_chat(connection);
         (chat_id, prompt) 
     }).await;
@@ -67,10 +68,14 @@ async fn join(db: PgDatabase, chat_id: Uuid, queue: &State<Sender<QueueMessage>>
     let mut rx = queue.subscribe();
     // Get historical messages
     let records = db.run(move |connection| get_chat_messages(connection, &chat_id)).await;
+
     EventStream! {
         // Pipe out existing
         for record in records {
-            yield Event::json(&record);
+            match record.role {
+                Role::System => continue,
+                _ => yield Event::json(&record),
+            }
         }
         // Listen for new messages
         loop {

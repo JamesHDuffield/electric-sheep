@@ -33,3 +33,4 @@ INSERT INTO defects (text, category_id)
 VALUES
 ('You may not mention any people besides strangers or enemies', (SELECT id FROM categories WHERE description = 'Small Talk')),
 ('You may not discuss anything that happened before you woke up this morning', (SELECT id FROM categories WHERE description = 'Small Talk'));
+('The last word in each of your responses MUST rhyme with each other', (SELECT id FROM categories WHERE description = 'Small Talk'));

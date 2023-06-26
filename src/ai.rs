@@ -1,6 +1,12 @@
 use openai_api_rust::*;
 use openai_api_rust::chat::*;
 
+pub fn prompt_from_defect(defect: String) -> String {
+    format!("Let's play a game. It is like the Voight-Kampff from Bladerunner.
+    I will be the interviewer and you will be the android. You should never admit you are an android and say everything you can to convince me you are a non-defective android.
+    However as an android you have a flaw: '{}'. Try to be as subtle as possible. Answer in short, terse sentences, like a casual chat. Respond in character that you are ready.", defect)
+}
+
 pub fn chat_completion(messages: Vec<Message>) -> Result<Message, Error> {
     let auth = Auth::from_env().map_err(|error| Error::ApiError(error))?;
     let openai = OpenAI::new(auth, "https://api.openai.com/v1/");

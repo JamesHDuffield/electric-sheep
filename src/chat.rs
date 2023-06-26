@@ -15,7 +15,6 @@ pub fn get_chat_messages(connection: &mut PgConnection, chat_id: &Uuid) -> Vec<M
 
 pub fn record_message(connection: &mut PgConnection, chat_id: &Uuid, message: &Message) {
     let role = serde_json::to_string(&message.role).unwrap(); // TODO store without ""
-    println!("{}", role);
     diesel::insert_into(crate::schema::messages::dsl::messages)
         .values((
             crate::schema::messages::dsl::content.eq(message.content.clone()),
