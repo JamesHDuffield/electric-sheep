@@ -1,4 +1,5 @@
-DROP TABLE defects;
-DROP TABLE categories;
-DROP TABLE messages;
-DROP TABLE chats;
+DROP TABLE IF EXISTS defects;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS chats;
+DROP TABLE IF EXISTS personas;

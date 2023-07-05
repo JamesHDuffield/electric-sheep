@@ -3,7 +3,7 @@ use crate::schema::{defects, categories};
 use super::Categories;
 use rand::seq::SliceRandom;
 
-#[derive(Queryable, Insertable, Debug)]
+#[derive(Queryable, Debug)]
 #[diesel(table_name = defects)]
 pub struct Defect {
     pub id: i32,

@@ -11,7 +11,7 @@ Voight-Kampff meets ChatGPT.
 ## Database Migration / Seeding
 
 - `cargo install diesel_cli --no-default-features --features postgres`
-- `diesel migration run`
+- `diesel migration run` or `diesel migration redo`
 
 ## Schema
 

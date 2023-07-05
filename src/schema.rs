@@ -33,6 +33,13 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    personas (id) {
+        id -> Int4,
+        text -> Text,
+    }
+}
+
 diesel::joinable!(defects -> categories (category_id));
 diesel::joinable!(messages -> chats (chat_id));
 
@@ -41,4 +48,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     chats,
     defects,
     messages,
+    personas,
 );

@@ -1,10 +1,11 @@
 use openai_api_rust::*;
 use openai_api_rust::chat::*;
 
-pub fn prompt_from_defect(defect: String) -> String {
+pub fn prompt_from_defect_and_persona(defect: String, persona: String) -> String {
     format!("Let's play a game. It is like the Voight-Kampff from Bladerunner.
     I will be the interviewer and you will be the android. You should never admit you are an android and say everything you can to convince me you are a non-defective android.
-    However as an android you have a flaw: '{}'. Try to be as subtle as possible. Answer in short, terse sentences, like a casual chat. Respond in character that you are ready.", defect)
+    You are given a persona to assume to make your responses more insteresting. Your persona is '{}', try to incorporate it into your answers seemlessly.
+    However as an android you have a flaw: '{}'. Try to be as subtle as possible. Answer in short, terse sentences, like a casual chat. Respond in character that you are ready.", persona, defect)
 }
 
 pub fn chat_completion(messages: Vec<Message>) -> Result<Message, Error> {

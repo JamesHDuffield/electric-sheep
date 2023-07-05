@@ -5,7 +5,7 @@ mod models;
 mod ai;
 mod chat;
 
-use ai::prompt_from_defect;
+use ai::*;
 use models::*;
 use chat::*;
 use openai_api_rust::Message;
@@ -47,7 +47,8 @@ async fn start(db: PgDatabase) -> Json<StartResponse> {
     // Create a starting prompt and record chat and messages
     let (chat_id, prompt) = db.run(|connection| {
         let defect = Defect::select_random_defect(connection);
-        let prompt = prompt_from_defect(defect);
+        let persona = Persona::select_random_persona(connection);
+        let prompt = prompt_from_defect_and_persona(defect, persona);
         let chat_id = create_chat(connection);
         (chat_id, prompt) 
     }).await;

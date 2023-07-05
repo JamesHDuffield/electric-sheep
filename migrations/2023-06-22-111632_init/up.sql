@@ -23,6 +23,11 @@ CREATE TABLE messages (
     FOREIGN KEY(chat_id) REFERENCES chats(id)
 );
 
+CREATE TABLE personas (
+    id SERIAL PRIMARY KEY,
+    text TEXT NOT NULL
+);
+
 -- Seeding
 
 INSERT INTO categories (description)
@@ -32,5 +37,14 @@ VALUES
 INSERT INTO defects (text, category_id)
 VALUES
 ('You may not mention any people besides strangers or enemies', (SELECT id FROM categories WHERE description = 'Small Talk')),
-('You may not discuss anything that happened before you woke up this morning', (SELECT id FROM categories WHERE description = 'Small Talk'));
+('You may not discuss anything that happened before you woke up this morning', (SELECT id FROM categories WHERE description = 'Small Talk')),
 ('The last word in each of your responses MUST rhyme with each other', (SELECT id FROM categories WHERE description = 'Small Talk'));
+
+INSERT INTO personas (text)
+VALUES
+('Maker of False Animals'),
+('Renowned Professor'),
+('Reality TV Contestant'),
+('Cult Leader'),
+('Foreign Ambassador'),
+('Motivational Speaker');
