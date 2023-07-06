@@ -4,10 +4,12 @@ mod schema;
 mod models;
 mod ai;
 mod chat;
+mod messages;
 
 use ai::*;
 use models::*;
 use chat::*;
+use messages::*;
 use openai_api_rust::Message;
 use openai_api_rust::Role;
 use rocket::response::stream::{EventStream, Event};
@@ -17,46 +19,12 @@ use rocket::fs::{FileServer, relative};
 use rocket::serde::json::Json;
 use rocket_sync_db_pools::diesel::*;
 use rocket_sync_db_pools::database;
-use rocket::serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use rocket::tokio::select;
 use rand::Rng;
 
 #[database("db")]
 struct PgDatabase(PgConnection);
-
-#[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
-struct StartResponse {
-    chat_id: Uuid,
-    questions: Vec<String>,
-}
-
-#[derive(Deserialize)]
-#[serde(crate = "rocket::serde")]
-struct ReplyRequest {
-    content: String,
-}
-
-#[derive(Deserialize)]
-#[serde(crate = "rocket::serde")]
-struct SubmitRequest {
-    defective: bool,
-}
-
-#[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
-struct SubmitResponse {
-    defective: bool,
-    win: bool,
-    defect: Option<String>,
-}
-
-#[derive(Debug, Clone)]
-struct QueueMessage {
-    chat_id: Uuid,
-    message: Message
-}
 
 #[post("/start")]
 async fn start(db: PgDatabase) -> Json<StartResponse> {
