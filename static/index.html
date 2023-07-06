@@ -8,6 +8,12 @@
         body {
             font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
         }
+        .container {
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 3em;
+            max-width: 800px;
+        }
     </style>
     <script>
         async function start() {
@@ -19,7 +25,15 @@
 </head>
 
 <body>
-    <h1>Does ChatGPT dream of electric sheep?</h1>
-    <button onclick="start()">Start a new chat</button>
+    <div class="container">
+        <h1>Does ChatGPT dream of electric sheep?</h1>
+        <p>In a far future cyberpunk city you are an interviewer tasks with determining if your suspect is a regular
+            human or a devious android. All androids have subtle programming defect that reveal their true nature. Ask
+            the right questions and then make your verdict.</p>
+        <p>The suspect has a 50% change of being a human and a 50% change of being an android.</p>
+        <p>Example defect an android might have: "You cannot disagree with anyone."</p>
+        <button onclick="start()">Start Interview</button>
+    </div>
 </body>
+
 </html>

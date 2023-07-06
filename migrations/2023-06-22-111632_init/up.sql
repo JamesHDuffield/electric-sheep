@@ -57,7 +57,13 @@ VALUES
 ('What do you do for a living?', (SELECT id FROM categories WHERE description = 'Small Talk')),
 ('What''s your favourite hobby?', (SELECT id FROM categories WHERE description = 'Small Talk')),
 ('Where did you grow up?', (SELECT id FROM categories WHERE description = 'Small Talk')),
-('How many siblings do you have?', (SELECT id FROM categories WHERE description = 'Small Talk'));
+('How many siblings do you have?', (SELECT id FROM categories WHERE description = 'Small Talk')),
+('What''s your favourite thing about that?', (SELECT id FROM categories WHERE description = 'Small Talk')),
+('How does your mother feel about that?', (SELECT id FROM categories WHERE description = 'Small Talk')),
+('How does your boss feel about that?', (SELECT id FROM categories WHERE description = 'Small Talk')),
+('What makes that difficult?', (SELECT id FROM categories WHERE description = 'Small Talk')),
+('If you could change anything about what happened, what would you change?', (SELECT id FROM categories WHERE description = 'Small Talk')),
+('How does that make you feel?', (SELECT id FROM categories WHERE description = 'Small Talk'));
 
 INSERT INTO personas (text)
 VALUES

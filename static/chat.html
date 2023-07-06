@@ -9,6 +9,13 @@
             font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
         }
 
+        .container {
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 3em;
+            max-width: 800px;
+        }
+
         input {
             width: 100%;
             height: 2em;
@@ -23,7 +30,7 @@
         stream.onmessage = (event) => {
             const message = JSON.parse(event.data);
             const newChat = document.createElement("li");
-            newChat.innerHTML = `<b>${message.role}</b>: ${message.content}`; // I know :(
+            newChat.innerHTML = `<b>${message.role == 'user' ? 'You' : 'Suspect' }</b>: ${message.content}`; // I know :(
             document.getElementById("chat").appendChild(newChat);
         };
 
@@ -55,13 +62,17 @@
 </head>
 
 <body>
-    <h1>Does ChatGPT dream of electric sheep?</h1>
-    <ul id="chat"></ul>
-    <input type="text" name="content" id="reply">
-    <input type="submit" value="Submit" onclick="send();">
-    <hr>
-    <button onclick="accusation(false)">Functioning</button>
-    <button onclick="accusation(true)">Defective</button>
+    <div class="container">
+        <ul id="chat">
+            <li><b>You</b>: Are you ready to begin the interview?</li>
+        </ul>
+        <input type="text" name="content" id="reply">
+        <input type="submit" value="Reply" onclick="send();">
+        <hr>
+        Make your verdict: 
+        <button onclick="accusation(false)">Human</button>
+        <button onclick="accusation(true)">Android</button>
+    </div>
 </body>
 
 </html>
