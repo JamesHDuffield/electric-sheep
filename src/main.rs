@@ -29,6 +29,7 @@ struct PgDatabase(PgConnection);
 #[serde(crate = "rocket::serde")]
 struct StartResponse {
     chat_id: Uuid,
+    questions: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -60,17 +61,19 @@ struct QueueMessage {
 #[post("/start")]
 async fn start(db: PgDatabase) -> Json<StartResponse> {
     // Create a starting prompt and record chat and messages
-    let (chat_id, prompt) = db.run(|connection| {
+    let (chat_id, prompt, questions) = db.run(|connection| {
         // Flip a coin to determine if android is going be a defect
         let is_defective = rand::thread_rng().gen_bool(0.5);
+        let category = Categories::select_random(connection);
         let defect = match is_defective {
-            true => Some(Defect::select_random_defect(connection)),
+            true => Some(Defect::select_random_from_category(connection, &category)),
             false => None
         };
         let persona = Persona::select_random_persona(connection);
         let prompt = prompt_from_defect_and_persona(&defect, &persona);
         let chat_id = create_chat(connection, &defect, &persona);
-        (chat_id, prompt) 
+        let questions = Question::select_random_questions_from_category(connection, &category, 3);
+        (chat_id, prompt, questions) 
     }).await;
     // Send to AI
     let system_message = Message { role: Role::System, content: prompt };
@@ -81,7 +84,8 @@ async fn start(db: PgDatabase) -> Json<StartResponse> {
         record_message(connection, &chat_id, &ai_response);
     }).await;
     Json(StartResponse {
-        chat_id
+        chat_id,
+        questions,
     })
 }
 

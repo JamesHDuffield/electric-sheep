@@ -13,7 +13,7 @@
         async function start() {
             const response = await fetch("api/start", { method: 'POST' });
             const chat = await response.json();
-            window.location.href = `chat.html?id=${chat.chat_id}`;
+            window.location.href = `chat.html?id=${chat.chat_id}&questions=${chat.questions.join('|')}`;
         }
     </script>
 </head>

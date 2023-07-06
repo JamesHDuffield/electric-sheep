@@ -43,8 +43,17 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    questions (id) {
+        id -> Int4,
+        text -> Text,
+        category_id -> Int4,
+    }
+}
+
 diesel::joinable!(defects -> categories (category_id));
 diesel::joinable!(messages -> chats (chat_id));
+diesel::joinable!(questions -> categories (category_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     categories,
@@ -52,4 +61,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     defects,
     messages,
     personas,
+    questions,
 );
