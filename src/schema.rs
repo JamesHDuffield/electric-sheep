@@ -11,6 +11,9 @@ diesel::table! {
 diesel::table! {
     chats (id) {
         id -> Uuid,
+        defective -> Bool,
+        defect -> Nullable<Text>,
+        persona -> Text,
     }
 }
 

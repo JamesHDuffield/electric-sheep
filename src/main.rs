@@ -10,7 +10,6 @@ use models::*;
 use chat::*;
 use openai_api_rust::Message;
 use openai_api_rust::Role;
-use rocket::form::Form;
 use rocket::response::stream::{EventStream, Event};
 use rocket::tokio::sync::broadcast::{channel, Sender, error::RecvError};
 use rocket::{State, Shutdown};
@@ -18,9 +17,10 @@ use rocket::fs::{FileServer, relative};
 use rocket::serde::json::Json;
 use rocket_sync_db_pools::diesel::*;
 use rocket_sync_db_pools::database;
-use rocket::serde::Serialize;
+use rocket::serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use rocket::tokio::select;
+use rand::Rng;
 
 #[database("db")]
 struct PgDatabase(PgConnection);
@@ -31,9 +31,24 @@ struct StartResponse {
     chat_id: Uuid,
 }
 
-#[derive(Debug, Clone, FromForm)]
+#[derive(Deserialize)]
+#[serde(crate = "rocket::serde")]
 struct ReplyRequest {
     content: String,
+}
+
+#[derive(Deserialize)]
+#[serde(crate = "rocket::serde")]
+struct SubmitRequest {
+    defective: bool,
+}
+
+#[derive(Serialize)]
+#[serde(crate = "rocket::serde")]
+struct SubmitResponse {
+    defective: bool,
+    win: bool,
+    defect: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -46,10 +61,15 @@ struct QueueMessage {
 async fn start(db: PgDatabase) -> Json<StartResponse> {
     // Create a starting prompt and record chat and messages
     let (chat_id, prompt) = db.run(|connection| {
-        let defect = Defect::select_random_defect(connection);
+        // Flip a coin to determine if android is going be a defect
+        let is_defective = rand::thread_rng().gen_bool(0.5);
+        let defect = match is_defective {
+            true => Some(Defect::select_random_defect(connection)),
+            false => None
+        };
         let persona = Persona::select_random_persona(connection);
-        let prompt = prompt_from_defect_and_persona(defect, persona);
-        let chat_id = create_chat(connection);
+        let prompt = prompt_from_defect_and_persona(&defect, &persona);
+        let chat_id = create_chat(connection, &defect, &persona);
         (chat_id, prompt) 
     }).await;
     // Send to AI
@@ -100,9 +120,9 @@ async fn join(db: PgDatabase, chat_id: Uuid, queue: &State<Sender<QueueMessage>>
     }
 }
 
-#[post("/reply/<chat_id>", data = "<form>")]
-async fn reply(db: PgDatabase, chat_id: Uuid, form: Form<ReplyRequest>, queue: &State<Sender<QueueMessage>>) {    
-    let user_message = Message { role: Role::User, content: form.content.clone() };
+#[post("/reply/<chat_id>", format = "json", data = "<body>")]
+async fn reply(db: PgDatabase, chat_id: Uuid, body: Json<ReplyRequest>, queue: &State<Sender<QueueMessage>>) {    
+    let user_message = Message { role: Role::User, content: body.content.clone() };
     // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
     let _res = queue.send(QueueMessage { chat_id: chat_id.clone(), message: user_message.clone() });
     // Get history
@@ -120,12 +140,24 @@ async fn reply(db: PgDatabase, chat_id: Uuid, form: Form<ReplyRequest>, queue: &
     }).await;
 }
 
+#[post("/submit/<chat_id>", format = "json", data = "<body>")]
+async fn submit(db: PgDatabase, chat_id: Uuid, body: Json<SubmitRequest>) -> Json<SubmitResponse> {
+    // Get chat
+    let chat = db.run(move |connection| get_chat(connection, &chat_id)).await;
+    // Compare result
+    Json(SubmitResponse {
+        defective: chat.defective,
+        defect: chat.defect,
+        win: chat.defective == body.defective,
+    })
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
         .attach(PgDatabase::fairing())
         .manage(channel::<QueueMessage>(1024).0)
-        .mount("/api", routes![start, join, reply])
+        .mount("/api", routes![start, join, reply, submit])
         .mount("/", FileServer::from(relative!("/static")))
 }
 

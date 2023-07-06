@@ -11,7 +11,10 @@ CREATE TABLE defects (
 );
 
 CREATE TABLE chats (
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    defective BOOLEAN NOT NULL,
+    defect TEXT,
+    persona TEXT NOT NULL
 );
 
 CREATE TABLE messages (

@@ -8,6 +8,7 @@
         body {
             font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
         }
+
         input {
             width: 100%;
             height: 2em;
@@ -26,11 +27,29 @@
             document.getElementById("chat").appendChild(newChat);
         };
 
-        function send() {
-            document.form.action = `/api/reply/${urlParams.get('id')}`;
-            document.form.submit();
-            setTimeout(() => document.form.reset(), 0); // Nice
-            return false;
+        async function send() {
+            const content = document.getElementById("reply").value;
+            if (!content) { return; }
+            document.getElementById("reply").value = '';
+            await fetch(`api/reply/${urlParams.get('id')}`, {
+                method: 'POST', headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content }),
+            });
+        }
+
+        async function accusation(defective) {
+            const response = await fetch(`api/submit/${urlParams.get('id')}`, {
+                method: 'POST', headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ defective }),
+            });
+            const result = await response.json();
+            alert(`You ${result.win ? 'win' : 'lose'}!\nDefect: ${result.defective ? result.defect : 'None'}`);
         }
     </script>
 </head>
@@ -38,9 +57,11 @@
 <body>
     <h1>Does ChatGPT dream of electric sheep?</h1>
     <ul id="chat"></ul>
-    <form name="form" method="POST" target="frame" onsubmit="send(this);">
-        <input type="text" name="content" id="reply"><input type="button" value="Submit" onclick="send();">
-    </form>
+    <input type="text" name="content" id="reply">
+    <input type="submit" value="Submit" onclick="send();">
+    <br/>
+    <button onclick="accusation(false)">Functioning</button>
+    <button onclick="accusation(true)">Defective</button>
 </body>
-<iframe name="frame" style="display:none;"></iframe>
+
 </html>
