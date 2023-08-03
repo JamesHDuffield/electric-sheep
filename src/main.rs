@@ -6,12 +6,17 @@ mod ai;
 mod chat;
 mod messages;
 
+use std::path::Path;
+
 use ai::*;
 use models::*;
 use chat::*;
 use messages::*;
 use openai_api_rust::Message;
 use openai_api_rust::Role;
+use rocket::fs::NamedFile;
+use rocket::response::Redirect;
+use rocket::response::status;
 use rocket::response::stream::{EventStream, Event};
 use rocket::tokio::sync::broadcast::{channel, Sender, error::RecvError};
 use rocket::{State, Shutdown};
@@ -124,13 +129,19 @@ async fn submit(db: PgDatabase, chat_id: Uuid, body: Json<SubmitRequest>) -> Jso
     })
 }
 
+#[catch(404)]
+async fn fallback_to_index() -> status::Custom<Option<NamedFile>> {
+    status::Custom(rocket::http::Status::PermanentRedirect, NamedFile::open(Path::new(relative!("/site/build/index.html"))).await.ok())
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
         .attach(PgDatabase::fairing())
         .manage(channel::<QueueMessage>(1024).0)
         .mount("/api", routes![start, join, reply, submit])
-        .mount("/", FileServer::from(relative!("/static")))
+        .mount("/", FileServer::from(relative!("/site/build")))
+        .register("/", catchers![fallback_to_index])
 }
 
 
