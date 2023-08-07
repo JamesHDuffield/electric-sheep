@@ -6,7 +6,6 @@ use openai_api_rust::Message;
 #[serde(crate = "rocket::serde")]
 pub struct StartResponse {
     pub chat_id: Uuid,
-    pub questions: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -33,4 +32,11 @@ pub struct SubmitResponse {
 pub struct QueueMessage {
     pub chat_id: Uuid,
     pub message: Message
+}
+
+#[derive(Serialize)]
+#[serde(crate = "rocket::serde")]
+pub struct ChatDetailsResponse {
+    pub name: String,
+    pub persona: String,
 }

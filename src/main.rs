@@ -9,13 +9,14 @@ mod messages;
 use std::path::Path;
 
 use ai::*;
+use fake::Fake;
+use fake::faker::name::en::Name;
 use models::*;
 use chat::*;
 use messages::*;
 use openai_api_rust::Message;
 use openai_api_rust::Role;
 use rocket::fs::NamedFile;
-use rocket::response::Redirect;
 use rocket::response::status;
 use rocket::response::stream::{EventStream, Event};
 use rocket::tokio::sync::broadcast::{channel, Sender, error::RecvError};
@@ -34,7 +35,7 @@ struct PgDatabase(PgConnection);
 #[post("/start")]
 async fn start(db: PgDatabase) -> Json<StartResponse> {
     // Create a starting prompt and record chat and messages
-    let (chat_id, prompt, questions) = db.run(|connection| {
+    let (chat_id, prompt) = db.run(|connection| {
         // Flip a coin to determine if android is going be a defect
         let is_defective = rand::thread_rng().gen_bool(0.5);
         let category = Categories::select_random(connection);
@@ -43,10 +44,10 @@ async fn start(db: PgDatabase) -> Json<StartResponse> {
             false => None
         };
         let persona = Persona::select_random_persona(connection);
-        let prompt = prompt_from_defect_and_persona(&defect, &persona);
-        let chat_id = create_chat(connection, &defect, &persona);
-        let questions = Question::select_random_questions_from_category(connection, &category, 3);
-        (chat_id, prompt, questions) 
+        let name: String = Name().fake();
+        let prompt = prompt_from_defect_and_persona_and_name(&defect, &persona, &name);
+        let chat_id = create_chat(connection, &defect, &persona, &name);
+        (chat_id, prompt) 
     }).await;
     // Send to AI
     let system_message = Message { role: Role::System, content: prompt };
@@ -58,7 +59,15 @@ async fn start(db: PgDatabase) -> Json<StartResponse> {
     }).await;
     Json(StartResponse {
         chat_id,
-        questions,
+    })
+}
+
+#[get("/chat/<chat_id>")]
+async fn get_chat_details(db: PgDatabase, chat_id: Uuid) -> Json<ChatDetailsResponse> {
+    let chat = db.run(move |connection| get_chat(connection, &chat_id)).await;
+    Json(ChatDetailsResponse {
+        name: chat.name,
+        persona: chat.persona,
     })
 }
 
@@ -131,7 +140,7 @@ async fn submit(db: PgDatabase, chat_id: Uuid, body: Json<SubmitRequest>) -> Jso
 
 #[catch(404)]
 async fn fallback_to_index() -> status::Custom<Option<NamedFile>> {
-    status::Custom(rocket::http::Status::PermanentRedirect, NamedFile::open(Path::new(relative!("/site/build/index.html"))).await.ok())
+    status::Custom(rocket::http::Status::Ok, NamedFile::open(Path::new(relative!("/site/build/index.html"))).await.ok())
 }
 
 #[launch]
@@ -139,7 +148,7 @@ fn rocket() -> _ {
     rocket::build()
         .attach(PgDatabase::fairing())
         .manage(channel::<QueueMessage>(1024).0)
-        .mount("/api", routes![start, join, reply, submit])
+        .mount("/api", routes![start, get_chat_details, join, reply, submit])
         .mount("/", FileServer::from(relative!("/site/build")))
         .register("/", catchers![fallback_to_index])
 }

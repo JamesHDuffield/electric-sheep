@@ -7,15 +7,15 @@ pub fn prompt_for_defective_android(defect: &String) -> String {
     Try to be as subtle as possible.", defect)
 }
 
-pub fn prompt_from_defect_and_persona(defect: &Option<String>, persona: &String) -> String {
+pub fn prompt_from_defect_and_persona_and_name(defect: &Option<String>, persona: &String, name: &String) -> String {
     let defective_prompt = match defect {
         Some(defect) => prompt_for_defective_android(defect),
         None => "".to_string(),
     };
     format!("Lets roleplay in a dystopian cyberpunk future.
-    I will be the interviewer who is assessing if you are android or human and you will be the interviewee whom is trying to convince me you are human.{}
-    Your persona is '{}', you can use it to make your answers more authentic.
-    Answer in short, terse sentences, like a formal interview. Respond in character that you are ready.", defective_prompt, persona)
+    I will be the interviewer who is assessing if you are an android or human and you will be the interviewee whom is trying to convince me you are human.{}
+    You name is '{}' and your persona is '{}', you can use these to make your answers more authentic.
+    Answer in short, terse sentences, like a formal interview. Respond in character that you are ready.", defective_prompt, name, persona)
 }
 
 pub fn chat_completion(messages: Vec<Message>) -> Result<Message, Error> {

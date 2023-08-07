@@ -2,13 +2,16 @@
 	import { onMount } from 'svelte';
 	import { createChannelStore, type ChatMessage } from '../../../channel/store';
 	import type { PageData } from './$types';
+	import { getChatDetails } from './service';
 
 	export let data: PageData;
 
 	let reply = '';
 	let writing = false;
 	let messages: ChatMessage[] = [];
-	let avatar = '3';
+	let avatar = parseInt(data.id[0], 16); // Uses first letter of chat id to set avatar
+	
+	const details$ = getChatDetails(data.id);
 
 	onMount(() => {
 		const store = createChannelStore(data.id);
@@ -57,33 +60,39 @@
 </script>
 
 <div class="flex w-full h-64 mb-4">
-	<img
-		class="flex-grow-0 h-64 w-64 rounded-lg"
-		src="/avatars/{avatar}.png"
-		alt="interviewee avatar"
-	/>
-	<div class="flex-grow h-full dark:text-white text-right">
-		<div class="flex flex-col justify-between h-full">
-			<dl>
-				<dt class="text-xs font-lightweight dark:text-teal-400">Full name</dt>
-				<dd class="text-md mb-3">Margot Foster</dd>
-				<dt class="text-xs font-lightweight dark:text-teal-400">Occupation</dt>
-				<dd class="text-md mb-3">Maker of False Animals</dd>
-			</dl>
-			<div class="pl-2">
-				<button
-					on:click|once={innocent}
-					class="w-full mb-2 text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded text-sm py-2 dark:bg-gray-700 dark:hover:bg-gray-500 dark:focus:ring-gray-600"
-					>Innocent Human</button
-				>
-				<button
-					on:click|once={guilty}
-					class="w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded text-sm py-2 dark:bg-red-900 dark:hover:bg-red-700 dark:focus:ring-red-800"
-					>Guilty Android</button
-				>
+	{#await details$}
+		<p class="dark:text-white">...waiting</p>
+	{:then details}
+		<img
+			class="flex-grow-0 h-64 w-64 rounded-lg"
+			src="/avatars/{avatar}.png"
+			alt="interviewee avatar"
+		/>
+		<div class="flex-grow h-full dark:text-white text-right">
+			<div class="flex flex-col justify-between h-full">
+				<dl>
+					<dt class="text-xs font-lightweight dark:text-teal-400">Full name</dt>
+					<dd class="text-md mb-3">{details.name}</dd>
+					<dt class="text-xs font-lightweight dark:text-teal-400">Occupation</dt>
+					<dd class="text-md mb-3">{details.persona}</dd>
+				</dl>
+				<div class="pl-2">
+					<button
+						on:click|once={innocent}
+						class="w-full mb-2 text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded text-sm py-2 dark:bg-gray-700 dark:hover:bg-gray-500 dark:focus:ring-gray-600"
+						>Innocent Human</button
+					>
+					<button
+						on:click|once={guilty}
+						class="w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded text-sm py-2 dark:bg-red-900 dark:hover:bg-red-700 dark:focus:ring-red-800"
+						>Guilty Android</button
+					>
+				</div>
 			</div>
 		</div>
-	</div>
+	{:catch error}
+		<p class="dark:text-red">Failed To Load Chat Details: {error.message}</p>
+	{/await}
 </div>
 
 <div class="flex flex-col flex-grow w-full h-full bg-white shadow-xl rounded-lg overflow-hidden">

@@ -8,4 +8,5 @@ pub struct Chat {
     pub defective: bool,
     pub defect: Option<String>,
     pub persona: String,
+    pub name: String,
 }

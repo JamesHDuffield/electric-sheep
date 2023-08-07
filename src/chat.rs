@@ -5,12 +5,13 @@ use uuid::Uuid;
 use crate::models::{RecordedMessage, Chat};
 use crate::schema::{messages, chats};
 
-pub fn create_chat(connection: &mut PgConnection, defect: &Option<String>, persona: &String) -> Uuid {
+pub fn create_chat(connection: &mut PgConnection, defect: &Option<String>, persona: &String, name: &String) -> Uuid {
     diesel::insert_into(chats::dsl::chats)
         .values((
             chats::dsl::defect.eq(defect),
             chats::dsl::defective.eq(defect.is_some()),
             chats::dsl::persona.eq(persona),
+            chats::dsl::name.eq(name),
         ))
         .returning(chats::id)
         .get_result(connection)
