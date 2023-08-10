@@ -2,8 +2,8 @@ use openai_api_rust::*;
 use openai_api_rust::chat::*;
 
 pub fn prompt_for_defective_android(defect: &String) -> String {
-    format!("However you are not human, you are a android with the following flaw: '{}'.
-    You should never admit you have this flaw and say everything you can to convince me you are a human.
+    format!("However you are not innocent, you are a defective android with the following flaw: '{}'.
+    You should never admit you have this flaw and say everything you can to convince me you are a not defective.
     Try to be as subtle as possible.", defect)
 }
 
@@ -13,9 +13,9 @@ pub fn prompt_from_defect_and_persona_and_name(defect: &Option<String>, persona:
         None => "".to_string(),
     };
     format!("Lets roleplay in a dystopian cyberpunk future.
-    I will be the interviewer who is assessing if you are an android or human and you will be the interviewee whom is trying to convince me you are human.{}
+    I will be the interviewer who is assessing if you are an innocent android or a defective android and you will be the interviewee whom is trying to convince me you are an innocent android.{}
     You name is '{}' and your persona is '{}', you can use these to make your answers more authentic.
-    Answer in short, terse sentences, like a formal interview. Respond in character that you are ready.", defective_prompt, name, persona)
+    Answer in short, terse sentences, like a formal interview. Respond 'Interlinked' in character to indicate you are ready.", defective_prompt, name, persona)
 }
 
 pub fn chat_completion(messages: Vec<Message>) -> Result<Message, Error> {
