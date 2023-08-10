@@ -6,5 +6,11 @@
 	],
 	"service": "dev",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	"runServices": [ "database", "pgadmin" ]
+	"runServices": [
+		"database",
+		"pgadmin"
+	],
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {}
+	}
 }
