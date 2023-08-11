@@ -1,7 +1,6 @@
 {
 	"name": "dev",
 	"dockerComposeFile": [
-		"../docker-compose.yml",
 		"docker-compose.yml"
 	],
 	"service": "dev",

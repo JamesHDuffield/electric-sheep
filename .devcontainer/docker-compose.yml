@@ -9,4 +9,16 @@ services:
     volumes:
       - ..:/workspaces:cached
     command: /bin/sh -c "while sleep 1000; do :; done"
+  database:
+    image: postgres:15.3
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL
+      - PGADMIN_DEFAULT_PASSWORD
+    ports:
+      - "8001:80"
  
