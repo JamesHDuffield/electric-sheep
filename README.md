@@ -1,6 +1,11 @@
 # Does ChatGPT dream of electric sheep?
 
-Voight-Kampff meets ChatGPT.
+![Rust Version](https://img.shields.io/static/v1?logo=Rust&label=&message=Rust&color=grey)
+![Rust Version](https://img.shields.io/static/v1?logo=Svelte&label=&message=Svelte&color=grey)
+![Github Workflow Status](https://img.shields.io/github/actions/workflow/status/jameshduffield/electric-sheep/fly.yml)
+![Latest Commit](https://img.shields.io/github/last-commit/jameshduffield/electric-sheep)
+
+Voight-Kampff meets ChatGPT. Interview an android and make your verdict.
 
 ## Development
 
