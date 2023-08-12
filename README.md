@@ -4,7 +4,7 @@ Voight-Kampff meets ChatGPT.
 
 ## Development
 
-- Copy `.env.example` to `.env` and provide values
+- Copy `.devcontainer/.env.example` to `.devcontainer/.env` and provide open api key
 - Open vscode dev container
 - `cargo run`
 - `cd site && npm run watch` to rebuild static site
