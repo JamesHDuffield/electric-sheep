@@ -73,19 +73,19 @@
 		status = guilty ? 'Arrested' : 'Released';
 	}
 
-	async function quit() {
-		console.log(quit);
-		try {
-        	await goto('/');
-		} catch (e) {
-			console.log(e);
-		}
-    }
+	const scrollToBottom = (node: Element, _list: unknown[]) => {
+		const scroll = () => node.scroll({
+			top: node.scrollHeight,
+			behavior: 'smooth',
+		});
+		scroll();
+		return { update: scroll }
+	};
 </script>
 
 <div class="flex w-full h-64 mb-4">
 	<img
-		class="flex-grow-0 h-64 w-64 rounded-lg"
+		class="flex-grow-0 w-64 max-w-[50%] object-cover rounded-lg"
 		src="/avatars/{avatar}.png"
 		alt="interviewee avatar"
 	/>
@@ -139,8 +139,8 @@
 	</div>
 </div>
 
-<div class="flex flex-col flex-grow w-full h-full bg-white shadow-xl rounded-lg overflow-hidden">
-	<div class="flex flex-col flex-grow h-0 p-4 overflow-auto">
+<div class="flex flex-col flex-grow w-full h-full bg-white shadow-xl rounded-lg overflow-hidden mb-3">
+	<div use:scrollToBottom={messages} class="flex flex-col flex-grow h-0 p-4 overflow-auto">
 		{#each messages as message}
 			{#if message.role == 'assistant'}
 				<div class="flex w-full mt-2 space-x-3 max-w-xs">
@@ -199,7 +199,7 @@
 			type="submit"
 			disabled={interviewOver}
 			class="text-white right-2.5 bottom-2.5 bg-teal-700 hover:bg-teal-800 focus:ring-4 focus:outline-none focus:ring-teal-300 font-medium rounded text-sm px-4 py-2 dark:bg-teal-900 dark:hover:bg-teal-700 dark:focus:ring-teal-800"
-			>Interrogate</button
+			>➤</button
 		>
 	</form>
 </div>
