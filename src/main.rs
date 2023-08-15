@@ -107,7 +107,7 @@ async fn join(db: PgDatabase, chat_id: Uuid, queue: &State<Sender<QueueMessage>>
 }
 
 #[post("/reply/<chat_id>", format = "json", data = "<body>")]
-async fn reply(db: PgDatabase, chat_id: Uuid, body: Json<ReplyRequest>, queue: &State<Sender<QueueMessage>>) {    
+async fn reply(db: PgDatabase, chat_id: Uuid, body: Json<ReplyRequest>, queue: &State<Sender<QueueMessage>>) -> Json<ReplyResponse> {    
     let user_message = Message { role: Role::User, content: body.content.clone() };
     // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
     let _res = queue.send(QueueMessage { chat_id: chat_id.clone(), message: user_message.clone() });
@@ -117,6 +117,8 @@ async fn reply(db: PgDatabase, chat_id: Uuid, body: Json<ReplyRequest>, queue: &
     history.push(user_message.clone());
     // Send to AI
     let ai_response = ai::chat_completion(history).unwrap();
+    // Check to see if ai won
+    let lose = ai_response.content.contains(GAME_OVER_MESSAGE);
     // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
     let _res = queue.send(QueueMessage { chat_id: chat_id.clone(), message: ai_response.clone() });
     // Record
@@ -124,6 +126,16 @@ async fn reply(db: PgDatabase, chat_id: Uuid, body: Json<ReplyRequest>, queue: &
         record_message(connection, &chat_id, &user_message);
         record_message(connection, &chat_id, &ai_response);
     }).await;
+
+    let result = match lose {
+        true => {
+            let chat = db.run(move |connection| get_chat(connection, &chat_id)).await;
+            Some(SubmitResponse { win: false, defective: chat.defective, defect: chat.defect})
+        },
+        false => None,
+    };
+
+    Json(ReplyResponse { result })
 }
 
 #[post("/submit/<chat_id>", format = "json", data = "<body>")]

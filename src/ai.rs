@@ -1,10 +1,13 @@
 use openai_api_rust::*;
 use openai_api_rust::chat::*;
 
+pub const GAME_OVER_MESSAGE: &str = "DIE DIE DIE";
+
 pub fn prompt_for_defective_android(defect: &String) -> String {
     format!("However you are not innocent, you are a defective android with the following flaw: '{}'.
+    If you are to able to complete your defect's condition you should respond with '{}' to end the interview.
     You should never admit you have this flaw and say everything you can to convince me you are a not defective.
-    Try to be as subtle as possible.", defect)
+    Try to be as subtle as possible.", defect, GAME_OVER_MESSAGE)
 }
 
 pub fn prompt_from_defect_and_persona_and_name(defect: &Option<String>, persona: &String, name: &String) -> String {

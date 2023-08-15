@@ -12,12 +12,12 @@
 	let gameResult: InterviewResult | undefined = undefined;
 	let messages: ChatMessage[] = [];
 	let avatar = parseInt(data.id[0], 16) + 1; // Uses first letter of chat id to set avatar
-	let status: 'Suspect' | 'Arresting Suspect' | 'Releasing Suspect' | 'Arrested' | 'Released' =
+	let status: 'Suspect' | 'Arresting Suspect' | 'Releasing Suspect' | 'Arrested' | 'Released' | 'Murderous' =
 		'Suspect';
 
 	$: interviewOver = status != 'Suspect';
 	$: awaitingVerdict = status == 'Arresting Suspect' || status == 'Releasing Suspect';
-	$: verdictDelivered = status == 'Arrested' || status == 'Released' && gameResult;
+	$: gameOver = status == 'Arrested' || status == 'Released' || status == 'Murderous' && gameResult;
 
 	const details$ = getChatDetails(data.id);
 
@@ -36,7 +36,7 @@
 		const body = JSON.stringify({ content: reply });
 		reply = '';
 		writing = true;
-		await fetch(`/api/reply/${data.id}`, {
+		let response = await fetch(`/api/reply/${data.id}`, {
 			method: 'POST',
 			headers: {
 				Accept: 'application/json',
@@ -44,6 +44,11 @@
 			},
 			body
 		});
+		let replyState: { result: InterviewResult | undefined } = await response.json();
+		if (replyState.result) {
+			status = 'Murderous';
+			gameResult = replyState.result;
+		}
 		writing = false;
 	}
 
@@ -204,7 +209,7 @@
 	</form>
 </div>
 
-<div class="fixed left-0 top-0 z-[1055] h-full w-full overflow-y-auto overflow-x-hidden outline-none bg-gray-800/50 transition-opacity ease-linear-in delay-500 pointer-events-none" class:opacity-0={!verdictDelivered} class:opacity-1={verdictDelivered}>
+<div class="fixed left-0 top-0 z-[1055] h-full w-full overflow-y-auto overflow-x-hidden outline-none bg-gray-800/50 transition-opacity ease-linear-in delay-500 pointer-events-none" class:opacity-0={!gameOver} class:opacity-1={gameOver}>
 	<div class="pointer-events-none relative flex min-h-[calc(100%-1rem)] w-auto translate-y-[-50px] items-center min-[576px]:mx-auto min-[576px]:mt-7 min-[576px]:min-h-[calc(100%-3.5rem)] min-[576px]:max-w-[500px]">
 		<div class="pointer-events-auto relative flex w-full flex-col rounded-md border-none bg-white bg-clip-padding text-current shadow-lg outline-none dark:dark:bg-slate-950">
 			<div class="flex flex-col items-center justify-between rounded-t-md p-4 gap-3">
@@ -214,8 +219,13 @@
 							<h3 class="dark:text-teal-200">Successful Arrest</h3>
 							<p class="dark:text-white text-sm text-center">Another dangerous android off the streets.</p>
 						{:else}
-							<h3 class="dark:text-red-500">Wrongful Release</h3>
-							<p class="dark:text-white text-sm text-center">The android leaves promptly. You are notified via hologram of it's crimes later that week; along with your termination from the company.</p>
+							{#if status == 'Murderous'}
+								<h3 class="dark:text-red-500">Android Attack</h3>
+								<p class="dark:text-white text-sm text-center">The android leaps over the table and swiftly executes you.</p>
+							{:else}
+								<h3 class="dark:text-red-500">Wrongful Release</h3>
+								<p class="dark:text-white text-sm text-center">The android leaves promptly. You are notified via hologram of it's crimes later that week; along with your termination from the company.</p>
+							{/if}
 						{/if}
 						<p class="dark:text-gray-500 text-xs text-center">The android had the following defect: "{gameResult.defect}"</p>
 					{:else}

@@ -14,6 +14,12 @@ pub struct ReplyRequest {
     pub content: String,
 }
 
+#[derive(Serialize)]
+#[serde(crate = "rocket::serde")]
+pub struct ReplyResponse {
+    pub result: Option<SubmitResponse>,
+}
+
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct SubmitRequest {
