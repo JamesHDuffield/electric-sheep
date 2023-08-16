@@ -9,6 +9,8 @@ Voight-Kampff meets ChatGPT. A game where you interview an android and make your
 
 Inspired by the Blade Runner and the board game [Inhuman Condition](https://www.robots.management/).
 
+![Screenshot](/screenshot.png?raw=true)
+
 ## Development
 
 - Copy `.devcontainer/.env.example` to `.devcontainer/.env` and provide open api key
