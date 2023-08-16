@@ -7,7 +7,7 @@
 
 Voight-Kampff meets ChatGPT. A game where you interview an android and make your verdict on whether or not they are dangerous.
 
-Inspired by the Blade Runner and the board game [Inhuman Condition](https://www.robots.management/).
+Inspired by Philip K. Dick's novel [Do Androids Dream of Electric Sheep?](https://en.wikipedia.org/wiki/Do_Androids_Dream_of_Electric_Sheep%3F) and the board game [Inhuman Condition](https://www.robots.management/).
 
 ![Screenshot](/screenshot.png?raw=true)
 
