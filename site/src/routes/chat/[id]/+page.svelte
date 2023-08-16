@@ -224,7 +224,7 @@
 								<p class="dark:text-white text-sm text-center">The android leaps over the table and swiftly executes you.</p>
 							{:else}
 								<h3 class="dark:text-red-500">Wrongful Release</h3>
-								<p class="dark:text-white text-sm text-center">The android leaves promptly. You are notified via hologram of it's crimes later that week; along with your termination from the company.</p>
+								<p class="dark:text-white text-sm text-center">The android leaves promptly. You are notified via hologram of its crimes later that week; along with your termination from the company.</p>
 							{/if}
 						{/if}
 						<p class="dark:text-gray-500 text-xs text-center">The android had the following defect: "{gameResult.defect}"</p>
