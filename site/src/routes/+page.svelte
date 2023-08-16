@@ -23,7 +23,7 @@
 
 <img src="/splash.png" alt="interview room" class="w-full rounded-lg">
 <p class="dark:text-white mt-4">In a far future cyberpunk city you are an interviewer tasked with determining if your suspect is a regular
-    helpful android or a devious malfunctioning android out for blood. Defective androids have subtle programming defect that reveal their true nature. Ask
+    helpful android or a devious malfunctioning android out for blood. Defective androids have subtle programming defects that reveal their true nature. Ask
     the right questions and then make your verdict.</p>
 <p class="dark:text-white mt-4">However be careful, if you take too long a defective android can bypass its programming and attack.</p>
 <br><br>
