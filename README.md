@@ -5,7 +5,9 @@
 ![Github Workflow Status](https://img.shields.io/github/actions/workflow/status/jameshduffield/electric-sheep/fly.yml)
 ![Latest Commit](https://img.shields.io/github/last-commit/jameshduffield/electric-sheep)
 
-Voight-Kampff meets ChatGPT. Interview an android and make your verdict.
+Voight-Kampff meets ChatGPT. A game where you interview an android and make your verdict on whether or not they are dangerous.
+
+Inspired by the Blade Runner and the board game [Inhuman Condition](https://www.robots.management/).
 
 ## Development
 
@@ -26,3 +28,7 @@ To run the migration to fly.io
 ## Schema
 
 - Regenerate with `diesel print-schema > src/schema.rs`
+
+## Images
+
+Avatars are generated with Stable Diffusion prompt `android, portrait, simple shapes, vector art, cyberpunk, blade runner, papers please, cultist simulator`.
