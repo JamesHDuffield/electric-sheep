@@ -27,7 +27,7 @@
     the right questions and then make your verdict.</p>
 <p class="dark:text-white mt-4">However be careful, if you take too long and a defective android can bypass it's programming it may attack.</p>
 <br><br>
-<p class="dark:text-white mt-4">The suspect has a 50% chance of being a <span class="dark:text-teal-200">innocent android</span> and a 50% change of being a <span class="dark:text-red-500">defective android</span>.</p>
+<p class="dark:text-white mt-4">The suspect has a 50% chance of being a <span class="dark:text-teal-200">innocent android</span> and a 50% chance of being a <span class="dark:text-red-500">defective android</span>.</p>
 <p class="dark:text-gray-500 mt-4">Example defect an android might have: "You must disagree with the interviewer 3 times."</p>
 <Button on:click={startInterview} class="w-fit mt-8 self-center" disabled={loading}>
     Start Interview
