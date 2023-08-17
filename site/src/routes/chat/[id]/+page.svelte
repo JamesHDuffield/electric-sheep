@@ -4,6 +4,7 @@
 	import type { PageData } from './$types';
 	import { getChatDetails, type InterviewResult } from './service';
 	import { goto } from '$app/navigation';
+	import Button from '../../../components/Button.svelte';
 
 	export let data: PageData;
 
@@ -100,11 +101,11 @@
 				<p class="dark:text-white">...waiting</p>
 			{:then details}
 				<dl>
-					<dt class="text-xs font-lightweight dark:text-teal-400">Full name</dt>
+					<dt class="text-xs font-lightweight text-primary-600 dark:text-primary-400">Full name</dt>
 					<dd class="text-md mb-3">{details.name}</dd>
-					<dt class="text-xs font-lightweight dark:text-teal-400">Occupation</dt>
+					<dt class="text-xs font-lightweight text-primary-600 dark:text-primary-400">Occupation</dt>
 					<dd class="text-md mb-3">{details.persona}</dd>
-					<dt class="text-xs font-lightweight dark:text-teal-400">Status</dt>
+					<dt class="text-xs font-lightweight text-primary-600 dark:text-primary-400">Status</dt>
 					<dd class="text-md mb-3">
 						{#if awaitingVerdict}
 							<div
@@ -144,7 +145,7 @@
 	</div>
 </div>
 
-<div class="flex flex-col flex-grow w-full h-full bg-white shadow-xl rounded-lg overflow-hidden mb-3">
+<div class="flex flex-col flex-grow w-full h-full bg-neutral-200 dark:bg-white shadow-xl rounded-lg overflow-hidden mb-3">
 	<div use:scrollToBottom={messages} class="flex flex-col flex-grow h-0 p-4 overflow-auto">
 		{#each messages as message}
 			{#if message.role == 'assistant'}
@@ -163,7 +164,7 @@
 			{:else}
 				<div class="flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end">
 					<div>
-						<div class="bg-teal-600 text-white p-3 rounded-l-lg rounded-br-lg">
+						<div class="bg-primary-600 text-white p-3 rounded-l-lg rounded-br-lg">
 							<p class="text-sm">{message.content}</p>
 						</div>
 					</div>
@@ -179,15 +180,15 @@
 			<div class="flex w-full mt-2 space-x-3 max-w-xs">
 				<div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300" />
 				<div class="flex pb-1 h-full w-full gap-2">
-					<div class="flex-initial self-end w-2 h-2 bg-teal-400 rounded-full animate-bounce" />
-					<div class="flex-initial self-end w-2 h-2 bg-teal-400 rounded-full animate-bounce" />
-					<div class="flex-initial self-end w-2 h-2 bg-teal-400 rounded-full animate-bounce" />
+					<div class="flex-initial self-end w-2 h-2 bg-primary-600 rounded-full animate-bounce" />
+					<div class="flex-initial self-end w-2 h-2 bg-primary-600 rounded-full animate-bounce" />
+					<div class="flex-initial self-end w-2 h-2 bg-primary-600 rounded-full animate-bounce" />
 				</div>
 			</div>
 		{/if}
 	</div>
 	<form
-		class="flex bg-gray-500 p-4 gap-1 opacity-1 transition-opacity ease-linear delay-150"
+		class="flex bg-gray-500 p-4 gap-3 opacity-1 transition-opacity ease-linear delay-150"
 		on:submit|preventDefault={send}
 		class:opacity-0={interviewOver}
 	>
@@ -196,16 +197,11 @@
 			bind:value={reply}
 			disabled={interviewOver}
 			autofocus
-			class="flex items-center h-10 w-full rounded px-3 text-sm focus:ring-0 border-none"
+			class="flex items-center h-10 w-full rounded px-3 text-sm focus:ring-0 border-none outline-none"
 			type="text"
 			placeholder="Type your message…"
 		/>
-		<button
-			type="submit"
-			disabled={interviewOver}
-			class="text-white right-2.5 bottom-2.5 bg-teal-700 hover:bg-teal-800 focus:ring-4 focus:outline-none focus:ring-teal-300 font-medium rounded text-sm px-4 py-2 dark:bg-teal-900 dark:hover:bg-teal-700 dark:focus:ring-teal-800"
-			>➤</button
-		>
+		<Button type='submit' disabled={interviewOver}>➤</Button>
 	</form>
 </div>
 
@@ -216,7 +212,7 @@
 				{#if gameResult}
 					{#if gameResult.defective}
 						{#if gameResult.win}
-							<h3 class="dark:text-teal-200">Successful Arrest</h3>
+							<h3 class="dark:text-primary-200">Successful Arrest</h3>
 							<p class="dark:text-white text-sm text-center">Another dangerous android off the streets.</p>
 						{:else}
 							{#if status == 'Murderous'}
@@ -230,7 +226,7 @@
 						<p class="dark:text-gray-500 text-xs text-center">The android had the following defect: "{gameResult.defect}"</p>
 					{:else}
 						{#if gameResult.win}
-							<h3 class="dark:text-teal-200">Successful Release</h3>
+							<h3 class="dark:text-primary-200">Successful Release</h3>
 							<p class="dark:text-white text-sm text-center">The suspect thanks you for your service.</p>
 						{:else}
 							<h3 class="dark:text-red-500">Wrongful Arrest</h3>
@@ -239,7 +235,9 @@
 						<p class="dark:text-gray-500 text-xs text-center">The android was functioning without defect.</p>
 					{/if}
 				{/if}
-				<a href="/"><button class="text-white bg-teal-700 hover:bg-teal-800 focus:ring-4 focus:outline-none focus:ring-teal-300 font-medium rounded text-sm px-4 py-2 dark:bg-teal-900 dark:hover:bg-teal-700 dark:focus:ring-teal-800">Quit</button></a>
+				<a href="/">
+					<Button>Quit</Button>
+				</a>
 			</div>
 		</div>
 	</div>

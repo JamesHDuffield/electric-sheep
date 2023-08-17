@@ -1,6 +1,6 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
-    import { Button } from "flowbite-svelte";
+	import Button from '../components/Button.svelte';
 
     let loading = false;
 
@@ -27,19 +27,7 @@
     the right questions and then make your verdict.</p>
 <p class="dark:text-white mt-4">However be careful, if you take too long a defective android can bypass its programming and attack.</p>
 <br><br>
-<p class="dark:text-white mt-4">The suspect has a 50% chance of being a <span class="dark:text-teal-200">innocent android</span> and a 50% chance of being a <span class="dark:text-red-500">defective android</span>.</p>
-<p class="dark:text-gray-500 mt-4">Example defect an android might have: "You must disagree with the interviewer 3 times."</p>
-<Button on:click={startInterview} class="w-fit mt-8 self-center" disabled={loading}>
-    Start Interview
-    {#if loading}
-        <div
-            class="inline-block h-4 w-4 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] ml-2"
-            role="status"
-        >
-            <span
-                class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]"
-                >...</span
-            >
-        </div>
-    {/if}
-</Button>
+<p class="dark:text-white mt-4">The suspect has a 50% chance of being a <span class="dark:text-primary-200">innocent android</span> and a 50% chance of being a <span class="dark:text-red-500">defective android</span>.</p>
+<p class="dark:text-gray-500 mt-4 mb-8">Example defect an android might have: "You must disagree with the interviewer 3 times."</p>
+
+<Button on:click={startInterview} loading={loading}>Start Interview</Button>
