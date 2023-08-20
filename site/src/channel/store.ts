@@ -1,22 +1,28 @@
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
+import ReconnectingEventSource from 'reconnecting-eventsource';
 
 export interface ChatMessage {
     role: 'assistant' | 'user';
     content: string;
 }
 
-export const createChannelStore = (chat_id: string) => {
-    const { subscribe, set, update } = writable<ChatMessage[]>([]);
+export const createChannelStore = (chat_id: string): Writable<ChatMessage[]> => {
+    const store = writable<ChatMessage[]>([]);
 
-    const eventSource = new EventSource(`/api/join/${chat_id}`);
+    const eventSource = new ReconnectingEventSource(`/api/join/${chat_id}`);
 
-    eventSource.onmessage = event => {
-        update((messages) => messages.concat(JSON.parse(event.data)));
+    eventSource.onmessage = (event) => {
+        store.update((messages) => messages.concat(JSON.parse(event.data)));
     };
 
-    return {
-        subscribe,
-        reset: () => set([]),
-        close: () => eventSource.close(),
+    eventSource.onopen = () => {
+        console.info('SSE connection opened');
+        store.set([]);
     };
+
+    eventSource.onerror = (error) => {
+        console.error('SSE connection error', error);
+    }
+
+    return store;
 };

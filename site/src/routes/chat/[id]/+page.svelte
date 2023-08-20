@@ -1,9 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { createChannelStore, type ChatMessage } from '../../../channel/store';
 	import type { PageData } from './$types';
 	import { getChatDetails, type InterviewResult } from './service';
-	import { goto } from '$app/navigation';
 	import Button from '../../../components/Button.svelte';
 
 	export let data: PageData;
@@ -11,7 +9,6 @@
 	let reply = '';
 	let writing = false;
 	let gameResult: InterviewResult | undefined = undefined;
-	let messages: ChatMessage[] = [];
 	let avatar = parseInt(data.id[0], 16) + 1; // Uses first letter of chat id to set avatar
 	let status: 'Suspect' | 'Arresting Suspect' | 'Releasing Suspect' | 'Arrested' | 'Released' | 'Murderous' =
 		'Suspect';
@@ -21,14 +18,7 @@
 	$: gameOver = status == 'Arrested' || status == 'Released' || status == 'Murderous' && gameResult;
 
 	const details$ = getChatDetails(data.id);
-
-	onMount(() => {
-		const store = createChannelStore(data.id);
-		store.subscribe((incomingMessages) => {
-			messages = incomingMessages;
-		});
-		return store.close;
-	});
+	const messages = createChannelStore(data.id);
 
 	async function send() {
 		if (!reply) {
@@ -146,47 +136,49 @@
 </div>
 
 <div class="flex flex-col flex-grow w-full h-full bg-neutral-200 dark:bg-white shadow-xl rounded-lg overflow-hidden mb-3">
-	<div use:scrollToBottom={messages} class="flex flex-col flex-grow h-0 p-4 overflow-auto">
-		{#each messages as message}
-			{#if message.role == 'assistant'}
+	{#if $messages}
+		<div use:scrollToBottom={$messages} class="flex flex-col flex-grow h-0 p-4 overflow-auto">
+			{#each $messages as message}
+				{#if message.role == 'assistant'}
+					<div class="flex w-full mt-2 space-x-3 max-w-xs">
+						<img
+							class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300"
+							src="/avatars/{avatar}.png"
+							alt="interviewee avatar"
+						/>
+						<div>
+							<div class="bg-gray-300 p-3 rounded-r-lg rounded-bl-lg">
+								<p class="text-sm">{message.content}</p>
+							</div>
+						</div>
+					</div>
+				{:else}
+					<div class="flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end">
+						<div>
+							<div class="bg-primary-600 text-white p-3 rounded-l-lg rounded-br-lg">
+								<p class="text-sm">{message.content}</p>
+							</div>
+						</div>
+						<img
+							class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300"
+							src="/avatars/default.png"
+							alt="interviewer avatar"
+						/>
+					</div>
+				{/if}
+			{/each}
+			{#if writing}
 				<div class="flex w-full mt-2 space-x-3 max-w-xs">
-					<img
-						class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300"
-						src="/avatars/{avatar}.png"
-						alt="interviewee avatar"
-					/>
-					<div>
-						<div class="bg-gray-300 p-3 rounded-r-lg rounded-bl-lg">
-							<p class="text-sm">{message.content}</p>
-						</div>
+					<div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300" />
+					<div class="flex pb-1 h-full w-full gap-2">
+						<div class="flex-initial self-end w-2 h-2 bg-primary-600 rounded-full animate-bounce" />
+						<div class="flex-initial self-end w-2 h-2 bg-primary-600 rounded-full animate-bounce" />
+						<div class="flex-initial self-end w-2 h-2 bg-primary-600 rounded-full animate-bounce" />
 					</div>
-				</div>
-			{:else}
-				<div class="flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end">
-					<div>
-						<div class="bg-primary-600 text-white p-3 rounded-l-lg rounded-br-lg">
-							<p class="text-sm">{message.content}</p>
-						</div>
-					</div>
-					<img
-						class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300"
-						src="/avatars/default.png"
-						alt="interviewer avatar"
-					/>
 				</div>
 			{/if}
-		{/each}
-		{#if writing}
-			<div class="flex w-full mt-2 space-x-3 max-w-xs">
-				<div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300" />
-				<div class="flex pb-1 h-full w-full gap-2">
-					<div class="flex-initial self-end w-2 h-2 bg-primary-600 rounded-full animate-bounce" />
-					<div class="flex-initial self-end w-2 h-2 bg-primary-600 rounded-full animate-bounce" />
-					<div class="flex-initial self-end w-2 h-2 bg-primary-600 rounded-full animate-bounce" />
-				</div>
-			</div>
-		{/if}
-	</div>
+		</div>
+	{/if}
 	<form
 		class="flex bg-gray-500 p-4 gap-3 opacity-1 transition-opacity ease-linear delay-150"
 		on:submit|preventDefault={send}
