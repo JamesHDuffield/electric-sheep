@@ -12,10 +12,12 @@
 	let avatar = parseInt(data.id[0], 16) + 1; // Uses first letter of chat id to set avatar
 	let status: 'Suspect' | 'Arresting Suspect' | 'Releasing Suspect' | 'Arrested' | 'Released' | 'Murderous' =
 		'Suspect';
+	let reviewing = false;
 
 	$: interviewOver = status != 'Suspect';
 	$: awaitingVerdict = status == 'Arresting Suspect' || status == 'Releasing Suspect';
 	$: gameOver = status == 'Arrested' || status == 'Released' || status == 'Murderous' && gameResult;
+	$: showResults = gameOver && !reviewing;
 
 	const details$ = getChatDetails(data.id);
 	const messages = createChannelStore(data.id);
@@ -114,23 +116,34 @@
 			{:catch error}
 				<p class="dark:text-red">Failed To Load Chat Details: {error.message}</p>
 			{/await}
-			<div
-				class="pl-2 opacity-1 transition-opacity ease-linear delay-150"
-				class:opacity-0={interviewOver}
-			>
-				<button
-					on:click|once={innocent}
-					disabled={interviewOver}
-					class="w-full mb-2 text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded text-sm py-2 dark:bg-gray-700 dark:hover:bg-gray-500 dark:focus:ring-gray-600"
-					>Innocent Android</button
+
+			{#if !gameOver}
+				<div
+					class="pl-2 opacity-1 transition-opacity ease-linear delay-150"
+					class:opacity-0={interviewOver}
 				>
-				<button
-					on:click|once={guilty}
-					disabled={interviewOver}
-					class="w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded text-sm py-2 dark:bg-red-900 dark:hover:bg-red-700 dark:focus:ring-red-800"
-					>Defective Android</button
-				>
-			</div>
+					<button
+						on:click|once={innocent}
+						disabled={interviewOver}
+						class="w-full mb-2 text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded text-sm py-2 dark:bg-gray-700 dark:hover:bg-gray-500 dark:focus:ring-gray-600"
+						>Innocent Android</button
+					>
+					<button
+						on:click|once={guilty}
+						disabled={interviewOver}
+						class="w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded text-sm py-2 dark:bg-red-900 dark:hover:bg-red-700 dark:focus:ring-red-800"
+						>Defective Android</button
+					>
+				</div>
+			{:else if reviewing}
+				<div class="pl-2">
+					<button
+						on:click={() => reviewing = false }
+						class="w-full text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded text-sm py-2 dark:bg-gray-700 dark:hover:bg-gray-500 dark:focus:ring-gray-600"
+						>Show Verdict</button
+					>
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>
@@ -197,9 +210,14 @@
 	</form>
 </div>
 
-<div class="fixed left-0 top-0 z-[1055] h-full w-full overflow-y-auto overflow-x-hidden outline-none bg-gray-800/50 transition-opacity ease-linear-in delay-500 pointer-events-none" class:opacity-0={!gameOver} class:opacity-1={gameOver}>
+<div class="fixed left-0 top-0 z-[1055] h-full w-full overflow-y-auto overflow-x-hidden outline-none bg-gray-800/50 transition-opacity ease-linear-in delay-500 pointer-events-none" class:opacity-0={!showResults} class:opacity-1={showResults}>
 	<div class="pointer-events-none relative flex min-h-[calc(100%-1rem)] w-auto translate-y-[-50px] items-center min-[576px]:mx-auto min-[576px]:mt-7 min-[576px]:min-h-[calc(100%-3.5rem)] min-[576px]:max-w-[500px]">
 		<div class="pointer-events-auto relative flex w-full flex-col rounded-md border-none bg-white bg-clip-padding text-current shadow-lg outline-none dark:dark:bg-slate-950">
+			<button on:click={ () => reviewing = true } class="absolute top-2 right-2 box-content rounded-none border-none hover:no-underline hover:opacity-75 focus:opacity-100 focus:shadow-none focus:outline-none dark:text-white">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+				  </svg>
+			</button>
 			<div class="flex flex-col items-center justify-between rounded-t-md p-4 gap-3">
 				{#if gameResult}
 					{#if gameResult.defective}
