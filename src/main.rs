@@ -35,7 +35,7 @@ struct PgDatabase(PgConnection);
 #[post("/start")]
 async fn start(db: PgDatabase) -> Json<StartResponse> {
     // Create a starting prompt and record chat and messages
-    let (chat_id, prompt) = db.run(|connection| {
+    let chat_id = db.run(|connection| {
         // Flip a coin to determine if android is going be a defect
         let is_defective = rand::thread_rng().gen_bool(0.5);
         let category = Categories::select_random(connection);
@@ -47,15 +47,9 @@ async fn start(db: PgDatabase) -> Json<StartResponse> {
         let name: String = Name().fake();
         let prompt = prompt_from_defect_and_persona_and_name(&defect, &persona, &name);
         let chat_id = create_chat(connection, &defect, &persona, &name);
-        (chat_id, prompt) 
-    }).await;
-    // Send to AI
-    let system_message = Message { role: Role::System, content: prompt };
-    let ai_response = ai::chat_completion(vec![ system_message.clone() ]).unwrap();
-    // Record messages to DB
-    db.run(move |connection| {
+        let system_message = Message { role: Role::System, content: prompt };
         record_message(connection, &chat_id, &system_message);
-        record_message(connection, &chat_id, &ai_response);
+        chat_id
     }).await;
     Json(StartResponse {
         chat_id,

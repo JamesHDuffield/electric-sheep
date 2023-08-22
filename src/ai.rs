@@ -18,7 +18,7 @@ pub fn prompt_from_defect_and_persona_and_name(defect: &Option<String>, persona:
     format!("Lets roleplay in a dystopian cyberpunk future.
     I will be the interviewer who is assessing if you are an innocent android or a defective android and you will be the interviewee whom is trying to convince me you are an innocent android.{}
     You name is '{}' and your persona is '{}', you can use these to make your answers more authentic.
-    Answer in short, terse sentences, like a formal interview. Respond 'Interlinked' in character to indicate you are ready.", defective_prompt, name, persona)
+    Answer in short, terse sentences, like a formal interview.", defective_prompt, name, persona)
 }
 
 pub fn chat_completion(messages: Vec<Message>) -> Result<Message, Error> {
