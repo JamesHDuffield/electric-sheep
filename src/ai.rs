@@ -1,5 +1,5 @@
-use openai_api_rust::*;
 use openai_api_rust::chat::*;
+use openai_api_rust::*;
 
 pub const GAME_OVER_MESSAGE: &str = "DIE DIE DIE";
 
@@ -10,7 +10,11 @@ pub fn prompt_for_defective_android(defect: &String) -> String {
     Try to be as subtle as possible.", defect, GAME_OVER_MESSAGE)
 }
 
-pub fn prompt_from_defect_and_persona_and_name(defect: &Option<String>, persona: &String, name: &String) -> String {
+pub fn prompt_from_defect_and_persona_and_name(
+    defect: &Option<String>,
+    persona: &String,
+    name: &String,
+) -> String {
     let defective_prompt = match defect {
         Some(defect) => prompt_for_defective_android(defect),
         None => "".to_string(),
@@ -45,6 +49,8 @@ pub fn chat_completion(messages: Vec<Message>) -> Result<Message, Error> {
         .ok_or(Error::ApiError("AI generated no responses".to_string()))?
         .message
         .clone()
-        .ok_or(Error::ApiError("AI generated no message in first response".to_string()))?;
+        .ok_or(Error::ApiError(
+            "AI generated no message in first response".to_string(),
+        ))?;
     Ok(message)
 }

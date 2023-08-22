@@ -1,7 +1,7 @@
-use std::time::SystemTime;
 use diesel::prelude::*;
-use uuid::Uuid;
 use rocket::serde::Serialize;
+use std::time::SystemTime;
+use uuid::Uuid;
 
 #[derive(Queryable, Serialize, Clone, Debug)]
 #[diesel(table_name = messages)]
