@@ -1,0 +1,2 @@
+ALTER TABLE chats DROP COLUMN won;
+ALTER TABLE chats DROP COLUMN attacked;

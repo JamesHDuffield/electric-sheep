@@ -15,6 +15,8 @@ diesel::table! {
         defect -> Nullable<Text>,
         persona -> Text,
         name -> Text,
+        won -> Nullable<Bool>,
+        attacked -> Nullable<Bool>,
     }
 }
 
@@ -23,6 +25,14 @@ diesel::table! {
         id -> Int4,
         text -> Text,
         category_id -> Int4,
+    }
+}
+
+diesel::table! {
+    first_names (id) {
+        id -> Int4,
+        #[max_length = 50]
+        name -> Varchar,
     }
 }
 
@@ -51,6 +61,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     categories,
     chats,
     defects,
+    first_names,
     messages,
     personas,
 );

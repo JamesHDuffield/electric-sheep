@@ -1,10 +1,11 @@
 export interface InterviewResult {
-    win: boolean; defective: boolean; defect?: string
+    win: boolean; defective: boolean; defect?: string; attacked: boolean;
 }
 
 interface ChatDetails {
     name: string;
     persona: string;
+    result?: InterviewResult
 }
 
 export const getChatDetails = async (chatId: string): Promise<ChatDetails> => {

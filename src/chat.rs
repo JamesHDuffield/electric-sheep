@@ -5,6 +5,11 @@ use uuid::Uuid;
 use crate::models::{RecordedMessage, Chat};
 use crate::schema::{messages, chats};
 
+pub enum ChatOutcome {
+    Win,
+    Lost { attacked: bool },
+}
+
 pub fn create_chat(connection: &mut PgConnection, defect: &Option<String>, persona: &String, name: &String) -> Uuid {
     diesel::insert_into(chats::dsl::chats)
         .values((
@@ -37,4 +42,19 @@ pub fn record_message(connection: &mut PgConnection, chat_id: &Uuid, message: &M
         ))
         .execute(connection)
         .expect("Failed to insert message");
+}
+
+pub fn update_chat_outcome(connection: &mut PgConnection, chat_id: &Uuid, outcome: ChatOutcome) {
+    let (won, attacked) = match outcome {
+        ChatOutcome::Win => (true, false),
+        ChatOutcome::Lost { attacked } => (false, attacked),
+    };
+    diesel::update(chats::dsl::chats)
+        .set((
+            chats::dsl::attacked.eq(Some(attacked)),
+            chats::dsl::won.eq(Some(won)),
+        ))
+        .filter(chats::dsl::id.eq(chat_id))
+        .execute(connection)
+        .expect("Failed to update chat");
 }
