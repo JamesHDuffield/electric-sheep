@@ -1,11 +1,11 @@
 mod category;
+mod chat;
 mod defect;
 mod message;
 mod persona;
-mod chat;
 
 pub use category::*;
+pub use chat::*;
 pub use defect::*;
 pub use message::*;
 pub use persona::*;
-pub use chat::*;

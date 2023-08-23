@@ -1,6 +1,6 @@
-use rocket::serde::{Serialize, Deserialize};
-use uuid::Uuid;
 use openai_api_rust::Message;
+use rocket::serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Serialize)]
 #[serde(crate = "rocket::serde")]
@@ -38,7 +38,7 @@ pub struct SubmitResponse {
 #[derive(Debug, Clone)]
 pub struct QueueMessage {
     pub chat_id: Uuid,
-    pub message: Message
+    pub message: Message,
 }
 
 #[derive(Serialize)]

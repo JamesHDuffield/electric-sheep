@@ -1,5 +1,5 @@
-use diesel::prelude::*;
 use crate::schema::categories;
+use diesel::prelude::*;
 use rand::seq::SliceRandom;
 
 #[derive(Queryable, Clone, Debug)]
@@ -11,7 +11,12 @@ pub struct Categories {
 
 impl Categories {
     pub fn select_random(connection: &mut PgConnection) -> Self {
-        let categories = categories::dsl::categories.load::<Categories>(connection).expect("Issue retrieving categories");
-        categories.choose(&mut rand::thread_rng()).expect("Issue selecting category").clone()
+        let categories = categories::dsl::categories
+            .load::<Categories>(connection)
+            .expect("Issue retrieving categories");
+        categories
+            .choose(&mut rand::thread_rng())
+            .expect("Issue selecting category")
+            .clone()
     }
 }
