@@ -65,7 +65,11 @@ pub fn record_message(
         .execute(connection)
 }
 
-pub fn update_chat_outcome(connection: &mut PgConnection, chat_id: &Uuid, outcome: ChatOutcome) -> QueryResult<usize> {
+pub fn update_chat_outcome(
+    connection: &mut PgConnection,
+    chat_id: &Uuid,
+    outcome: ChatOutcome,
+) -> QueryResult<usize> {
     let (won, attacked) = match outcome {
         ChatOutcome::Win => (true, false),
         ChatOutcome::Lost { attacked } => (false, attacked),

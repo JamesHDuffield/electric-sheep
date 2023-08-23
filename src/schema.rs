@@ -49,10 +49,4 @@ diesel::table! {
 diesel::joinable!(defects -> categories (category_id));
 diesel::joinable!(messages -> chats (chat_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    categories,
-    chats,
-    defects,
-    messages,
-    personas,
-);
+diesel::allow_tables_to_appear_in_same_query!(categories, chats, defects, messages, personas,);

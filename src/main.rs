@@ -63,7 +63,10 @@ async fn start(db: PgDatabase) -> Result<Json<StartResponse>, ApiError> {
 }
 
 #[get("/chat/<chat_id>")]
-async fn get_chat_details(db: PgDatabase, chat_id: Uuid) -> Result<Json<ChatDetailsResponse>, ApiError> {
+async fn get_chat_details(
+    db: PgDatabase,
+    chat_id: Uuid,
+) -> Result<Json<ChatDetailsResponse>, ApiError> {
     let chat = db
         .run(move |connection| get_chat(connection, &chat_id))
         .await?;
@@ -165,7 +168,11 @@ async fn reply(
         true => {
             let chat = db
                 .run(move |connection| {
-                    update_chat_outcome(connection, &chat_id, ChatOutcome::Lost { attacked: true })?;
+                    update_chat_outcome(
+                        connection,
+                        &chat_id,
+                        ChatOutcome::Lost { attacked: true },
+                    )?;
                     get_chat(connection, &chat_id)
                 })
                 .await?;
