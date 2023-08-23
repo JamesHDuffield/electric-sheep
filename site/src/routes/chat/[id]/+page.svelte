@@ -19,7 +19,16 @@
 	$: gameOver = status == 'Arrested' || status == 'Released' || status == 'Murderous' && gameResult;
 	$: showResults = gameOver && !reviewing;
 
-	const details$ = getChatDetails(data.id);
+	const details$ = getChatDetails(data.id)
+		.then((details) => {
+			if (details.result) {
+				gameResult = details.result;
+				status = details.result.attacked ? 'Murderous' : (details.result.win && details.result.defective) || (!details.result.win && !details.result.defective) ? 'Arrested' : 'Released';
+				reviewing = true; // Stops the answer being shown right away
+			}
+			return details;
+		});
+
 	const messages = createChannelStore(data.id);
 
 	async function send() {

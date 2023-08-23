@@ -9,4 +9,6 @@ pub struct Chat {
     pub defect: Option<String>,
     pub persona: String,
     pub name: String,
+    pub won: Option<bool>,
+    pub attacked: Option<bool>,
 }

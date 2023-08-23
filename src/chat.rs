@@ -5,6 +5,11 @@ use rocket::serde::json::serde_json;
 use rocket_sync_db_pools::diesel::*;
 use uuid::Uuid;
 
+pub enum ChatOutcome {
+    Win,
+    Lost { attacked: bool },
+}
+
 pub fn create_chat(
     connection: &mut PgConnection,
     defect: &Option<String>,
@@ -57,5 +62,19 @@ pub fn record_message(
             messages::dsl::role.eq(role),
             messages::dsl::chat_id.eq(chat_id),
         ))
+        .execute(connection)
+}
+
+pub fn update_chat_outcome(connection: &mut PgConnection, chat_id: &Uuid, outcome: ChatOutcome) -> QueryResult<usize> {
+    let (won, attacked) = match outcome {
+        ChatOutcome::Win => (true, false),
+        ChatOutcome::Lost { attacked } => (false, attacked),
+    };
+    diesel::update(chats::dsl::chats)
+        .set((
+            chats::dsl::attacked.eq(Some(attacked)),
+            chats::dsl::won.eq(Some(won)),
+        ))
+        .filter(chats::dsl::id.eq(chat_id))
         .execute(connection)
 }

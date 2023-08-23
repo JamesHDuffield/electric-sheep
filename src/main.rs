@@ -63,16 +63,20 @@ async fn start(db: PgDatabase) -> Result<Json<StartResponse>, ApiError> {
 }
 
 #[get("/chat/<chat_id>")]
-async fn get_chat_details(
-    db: PgDatabase,
-    chat_id: Uuid,
-) -> Result<Json<ChatDetailsResponse>, ApiError> {
+async fn get_chat_details(db: PgDatabase, chat_id: Uuid) -> Result<Json<ChatDetailsResponse>, ApiError> {
     let chat = db
         .run(move |connection| get_chat(connection, &chat_id))
         .await?;
+    let result = chat.won.map(|win| SubmitResponse {
+        defective: chat.defective,
+        defect: chat.defect,
+        win,
+        attacked: chat.attacked.unwrap_or(true),
+    });
     Ok(Json(ChatDetailsResponse {
         name: chat.name,
         persona: chat.persona,
+        result,
     }))
 }
 
@@ -160,12 +164,16 @@ async fn reply(
     let result = match lose {
         true => {
             let chat = db
-                .run(move |connection| get_chat(connection, &chat_id))
+                .run(move |connection| {
+                    update_chat_outcome(connection, &chat_id, ChatOutcome::Lost { attacked: true })?;
+                    get_chat(connection, &chat_id)
+                })
                 .await?;
             Some(SubmitResponse {
-                win: false,
                 defective: chat.defective,
                 defect: chat.defect,
+                win: chat.won.unwrap_or(false),
+                attacked: chat.attacked.unwrap_or(true),
             })
         }
         false => None,
@@ -182,13 +190,22 @@ async fn submit(
 ) -> Result<Json<SubmitResponse>, ApiError> {
     // Get chat
     let chat = db
-        .run(move |connection| get_chat(connection, &chat_id))
+        .run(move |connection| {
+            let chat = get_chat(connection, &chat_id)?;
+            let outcome = match chat.defective == body.defective {
+                true => ChatOutcome::Win,
+                false => ChatOutcome::Lost { attacked: false },
+            };
+            update_chat_outcome(connection, &chat_id, outcome)?;
+            get_chat(connection, &chat_id)
+        })
         .await?;
     // Compare result
     Ok(Json(SubmitResponse {
         defective: chat.defective,
         defect: chat.defect,
-        win: chat.defective == body.defective,
+        win: chat.won.unwrap_or(false),
+        attacked: chat.attacked.unwrap_or(true),
     }))
 }
 

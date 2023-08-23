@@ -31,6 +31,7 @@ pub struct SubmitRequest {
 pub struct SubmitResponse {
     pub defective: bool,
     pub win: bool,
+    pub attacked: bool,
     pub defect: Option<String>,
 }
 
@@ -45,6 +46,7 @@ pub struct QueueMessage {
 pub struct ChatDetailsResponse {
     pub name: String,
     pub persona: String,
+    pub result: Option<SubmitResponse>,
 }
 
 #[derive(Serialize)]
