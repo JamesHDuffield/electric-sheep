@@ -29,14 +29,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    first_names (id) {
-        id -> Int4,
-        #[max_length = 50]
-        name -> Varchar,
-    }
-}
-
-diesel::table! {
     messages (id) {
         id -> Int4,
         #[max_length = 12]
@@ -57,11 +49,4 @@ diesel::table! {
 diesel::joinable!(defects -> categories (category_id));
 diesel::joinable!(messages -> chats (chat_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    categories,
-    chats,
-    defects,
-    first_names,
-    messages,
-    personas,
-);
+diesel::allow_tables_to_appear_in_same_query!(categories, chats, defects, messages, personas,);

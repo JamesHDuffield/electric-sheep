@@ -48,3 +48,9 @@ pub struct ChatDetailsResponse {
     pub persona: String,
     pub result: Option<SubmitResponse>,
 }
+
+#[derive(Serialize)]
+#[serde(crate = "rocket::serde")]
+pub struct ErrorResponse {
+    pub error_message: String,
+}

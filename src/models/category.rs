@@ -10,13 +10,11 @@ pub struct Categories {
 }
 
 impl Categories {
-    pub fn select_random(connection: &mut PgConnection) -> Self {
-        let categories = categories::dsl::categories
-            .load::<Categories>(connection)
-            .expect("Issue retrieving categories");
-        categories
+    pub fn select_random(connection: &mut PgConnection) -> QueryResult<Self> {
+        let categories = categories::dsl::categories.load::<Categories>(connection)?;
+        let chosen = categories
             .choose(&mut rand::thread_rng())
-            .expect("Issue selecting category")
-            .clone()
+            .ok_or(diesel::result::Error::NotFound)?;
+        Ok(chosen.clone())
     }
 }

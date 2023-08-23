@@ -10,13 +10,11 @@ pub struct Persona {
 }
 
 impl Persona {
-    pub fn select_random_persona(connection: &mut PgConnection) -> String {
-        let personas = personas::dsl::personas
-            .load::<Self>(connection)
-            .expect("Issue retrieving personas");
+    pub fn select_random_persona(connection: &mut PgConnection) -> QueryResult<String> {
+        let personas = personas::dsl::personas.load::<Self>(connection)?;
         let persona = personas
             .choose(&mut rand::thread_rng())
-            .expect("Issue selecting persona");
-        persona.text.clone()
+            .ok_or(diesel::result::Error::NotFound)?;
+        Ok(persona.text.clone())
     }
 }
