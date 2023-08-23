@@ -3,12 +3,14 @@ extern crate rocket;
 
 mod ai;
 mod chat;
+mod errors;
 mod messages;
 mod models;
 mod schema;
 
 use std::path::Path;
 
+use crate::errors::*;
 use ai::*;
 use chat::*;
 use fake::faker::name::en::Name;
@@ -34,48 +36,51 @@ use uuid::Uuid;
 struct PgDatabase(PgConnection);
 
 #[post("/start")]
-async fn start(db: PgDatabase) -> Json<StartResponse> {
+async fn start(db: PgDatabase) -> Result<Json<StartResponse>, ApiError> {
     // Create a starting prompt and record chat and messages
     let chat_id = db
         .run(|connection| {
             // Flip a coin to determine if android is going be a defect
             let is_defective = rand::thread_rng().gen_bool(0.5);
-            let category = Categories::select_random(connection);
+            let category = Categories::select_random(connection)?;
             let defect = match is_defective {
-                true => Some(Defect::select_random_from_category(connection, &category)),
+                true => Some(Defect::select_random_from_category(connection, &category)?),
                 false => None,
             };
-            let persona = Persona::select_random_persona(connection);
+            let persona = Persona::select_random_persona(connection)?;
             let name: String = Name().fake();
             let prompt = prompt_from_defect_and_persona_and_name(&defect, &persona, &name);
-            let chat_id = create_chat(connection, &defect, &persona, &name);
+            let chat_id = create_chat(connection, &defect, &persona, &name)?;
             let system_message = Message {
                 role: Role::System,
                 content: prompt,
             };
-            record_message(connection, &chat_id, &system_message);
-            chat_id
+            record_message(connection, &chat_id, &system_message)?;
+            Ok(chat_id) as QueryResult<Uuid>
         })
-        .await;
-    Json(StartResponse { chat_id })
+        .await?;
+    Ok(Json(StartResponse { chat_id }))
 }
 
 #[get("/chat/<chat_id>")]
-async fn get_chat_details(db: PgDatabase, chat_id: Uuid) -> Json<ChatDetailsResponse> {
+async fn get_chat_details(
+    db: PgDatabase,
+    chat_id: Uuid,
+) -> Result<Json<ChatDetailsResponse>, ApiError> {
     let chat = db
         .run(move |connection| get_chat(connection, &chat_id))
-        .await;
+        .await?;
     let result = chat.won.map(|win| SubmitResponse {
         defective: chat.defective,
         defect: chat.defect,
         win,
         attacked: chat.attacked.unwrap_or(true),
     });
-    Json(ChatDetailsResponse {
+    Ok(Json(ChatDetailsResponse {
         name: chat.name,
         persona: chat.persona,
         result,
-    })
+    }))
 }
 
 #[get("/join/<chat_id>")]
@@ -84,14 +89,14 @@ async fn join(
     chat_id: Uuid,
     queue: &State<Sender<QueueMessage>>,
     mut end: Shutdown,
-) -> EventStream![] {
+) -> Result<EventStream![], ApiError> {
     let mut rx = queue.subscribe();
     // Get historical messages
     let records = db
         .run(move |connection| get_chat_messages(connection, &chat_id))
-        .await;
+        .await?;
 
-    EventStream! {
+    Ok(EventStream! {
         // Pipe out existing
         for record in records {
             match record.role {
@@ -117,7 +122,7 @@ async fn join(
 
             yield Event::json(&msg);
         }
-    }
+    })
 }
 
 #[post("/reply/<chat_id>", format = "json", data = "<body>")]
@@ -126,24 +131,24 @@ async fn reply(
     chat_id: Uuid,
     body: Json<ReplyRequest>,
     queue: &State<Sender<QueueMessage>>,
-) -> Json<ReplyResponse> {
+) -> Result<Json<ReplyResponse>, ApiError> {
     let user_message = Message {
         role: Role::User,
-        content: body.content.clone(),
+        content: body.content.to_owned(),
     };
     // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
     let _res = queue.send(QueueMessage {
-        chat_id: chat_id.clone(),
-        message: user_message.clone(),
+        chat_id: chat_id.to_owned(),
+        message: user_message.to_owned(),
     });
     // Get history
     let mut history = db
         .run(move |connection| get_chat_messages(connection, &chat_id))
-        .await;
+        .await?;
     // Append new message
     history.push(user_message.clone());
     // Send to AI
-    let ai_response = ai::chat_completion(history).unwrap();
+    let ai_response = ai::chat_completion(history)?;
     // Check to see if ai won
     let lose = ai_response.content.contains(GAME_OVER_MESSAGE);
     // Notify queue - A send 'fails' if there are no active subscribers. That's okay.
@@ -153,19 +158,24 @@ async fn reply(
     });
     // Record
     db.run(move |connection| {
-        record_message(connection, &chat_id, &user_message);
-        record_message(connection, &chat_id, &ai_response);
+        record_message(connection, &chat_id, &user_message)?;
+        record_message(connection, &chat_id, &ai_response)?;
+        Ok(()) as QueryResult<()>
     })
-    .await;
+    .await?;
 
     let result = match lose {
         true => {
             let chat = db
                 .run(move |connection| {
-                    update_chat_outcome(connection, &chat_id, ChatOutcome::Lost { attacked: true });
+                    update_chat_outcome(
+                        connection,
+                        &chat_id,
+                        ChatOutcome::Lost { attacked: true },
+                    )?;
                     get_chat(connection, &chat_id)
                 })
-                .await;
+                .await?;
             Some(SubmitResponse {
                 defective: chat.defective,
                 defect: chat.defect,
@@ -176,30 +186,34 @@ async fn reply(
         false => None,
     };
 
-    Json(ReplyResponse { result })
+    Ok(Json(ReplyResponse { result }))
 }
 
 #[post("/submit/<chat_id>", format = "json", data = "<body>")]
-async fn submit(db: PgDatabase, chat_id: Uuid, body: Json<SubmitRequest>) -> Json<SubmitResponse> {
+async fn submit(
+    db: PgDatabase,
+    chat_id: Uuid,
+    body: Json<SubmitRequest>,
+) -> Result<Json<SubmitResponse>, ApiError> {
     // Get chat
     let chat = db
         .run(move |connection| {
-            let chat = get_chat(connection, &chat_id);
+            let chat = get_chat(connection, &chat_id)?;
             let outcome = match chat.defective == body.defective {
                 true => ChatOutcome::Win,
                 false => ChatOutcome::Lost { attacked: false },
             };
-            update_chat_outcome(connection, &chat_id, outcome);
+            update_chat_outcome(connection, &chat_id, outcome)?;
             get_chat(connection, &chat_id)
         })
-        .await;
+        .await?;
     // Compare result
-    Json(SubmitResponse {
+    Ok(Json(SubmitResponse {
         defective: chat.defective,
         defect: chat.defect,
         win: chat.won.unwrap_or(false),
         attacked: chat.attacked.unwrap_or(true),
-    })
+    }))
 }
 
 #[catch(404)]

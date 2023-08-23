@@ -15,14 +15,13 @@ impl Defect {
     pub fn select_random_from_category(
         connection: &mut PgConnection,
         category: &Categories,
-    ) -> String {
+    ) -> QueryResult<String> {
         let defects = defects::dsl::defects
             .filter(defects::category_id.eq(category.id))
-            .load::<Defect>(connection)
-            .expect("Issue retrieving defects");
+            .load::<Defect>(connection)?;
         let defect = defects
             .choose(&mut rand::thread_rng())
-            .expect("Issue selecting defect");
-        defect.text.clone()
+            .ok_or(diesel::result::Error::NotFound)?;
+        Ok(defect.text.clone())
     }
 }

@@ -15,7 +15,7 @@ pub fn create_chat(
     defect: &Option<String>,
     persona: &String,
     name: &String,
-) -> Uuid {
+) -> QueryResult<Uuid> {
     diesel::insert_into(chats::dsl::chats)
         .values((
             chats::dsl::defect.eq(defect),
@@ -25,31 +25,36 @@ pub fn create_chat(
         ))
         .returning(chats::id)
         .get_result(connection)
-        .expect("Failed to create chat")
 }
 
-pub fn get_chat(connection: &mut PgConnection, chat_id: &Uuid) -> Chat {
-    chats::dsl::chats
-        .find(chat_id)
-        .first::<Chat>(connection)
-        .expect("Cannot find chat")
+pub fn get_chat(connection: &mut PgConnection, chat_id: &Uuid) -> QueryResult<Chat> {
+    chats::dsl::chats.find(chat_id).first::<Chat>(connection)
 }
 
-pub fn get_chat_messages(connection: &mut PgConnection, chat_id: &Uuid) -> Vec<Message> {
+pub fn get_chat_messages(
+    connection: &mut PgConnection,
+    chat_id: &Uuid,
+) -> QueryResult<Vec<Message>> {
     let messages: Vec<RecordedMessage> = messages::dsl::messages
         .filter(messages::dsl::chat_id.eq(chat_id))
-        .load::<RecordedMessage>(connection)
-        .expect("Issue retrieving chat history");
+        .load::<RecordedMessage>(connection)?;
     messages
-        .iter()
-        .map(|msg| Message {
-            content: msg.content.clone(),
-            role: serde_json::from_str(&msg.role).unwrap(),
+        .into_iter()
+        .map(|msg| {
+            Ok::<Message, diesel::result::Error>(Message {
+                content: msg.content.clone(),
+                role: serde_json::from_str(&msg.role)
+                    .map_err(|err| diesel::result::Error::DeserializationError(Box::new(err)))?,
+            })
         })
         .collect()
 }
 
-pub fn record_message(connection: &mut PgConnection, chat_id: &Uuid, message: &Message) {
+pub fn record_message(
+    connection: &mut PgConnection,
+    chat_id: &Uuid,
+    message: &Message,
+) -> QueryResult<usize> {
     let role = serde_json::to_string(&message.role).unwrap(); // TODO store without ""
     diesel::insert_into(messages::dsl::messages)
         .values((
@@ -58,10 +63,13 @@ pub fn record_message(connection: &mut PgConnection, chat_id: &Uuid, message: &M
             messages::dsl::chat_id.eq(chat_id),
         ))
         .execute(connection)
-        .expect("Failed to insert message");
 }
 
-pub fn update_chat_outcome(connection: &mut PgConnection, chat_id: &Uuid, outcome: ChatOutcome) {
+pub fn update_chat_outcome(
+    connection: &mut PgConnection,
+    chat_id: &Uuid,
+    outcome: ChatOutcome,
+) -> QueryResult<usize> {
     let (won, attacked) = match outcome {
         ChatOutcome::Win => (true, false),
         ChatOutcome::Lost { attacked } => (false, attacked),
@@ -73,5 +81,4 @@ pub fn update_chat_outcome(connection: &mut PgConnection, chat_id: &Uuid, outcom
         ))
         .filter(chats::dsl::id.eq(chat_id))
         .execute(connection)
-        .expect("Failed to update chat");
 }
