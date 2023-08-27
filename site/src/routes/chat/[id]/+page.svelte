@@ -93,26 +93,7 @@
 
 <svelte:head>
 	{#await details$ then details}
-		<title>Android suspect - {details.name} - {details.persona}</title>
-		<meta name="description" content="Another potentially defective android, interview them and pass your verdict.">
-
-		<!-- Google / Search Engine Tags -->
-		<meta itemprop="name" content="Android suspect - {details.name} - {details.persona}">
-		<meta itemprop="description" content="Another potentially defective android, interview them and pass your verdict.">
-		<meta itemprop="image" content="/avatars/{avatar}.png">
-
-		<!-- Facebook Meta Tags -->
-		<meta property="og:url" content="{$page.url.toString()}">
-		<meta property="og:type" content="website">
-		<meta property="og:title" content="Android suspect - {details.name} - {details.persona}">
-		<meta property="og:description" content="Another potentially defective android, interview them and pass your verdict.">
-		<meta property="og:image" content="/avatars/{avatar}.png">
-
-		<!-- Twitter Meta Tags -->
-		<meta name="twitter:card" content="summary_large_image">
-		<meta name="twitter:title" content="Android suspect - {details.name} - {details.persona}">
-		<meta name="twitter:description" content="Another potentially defective android, interview them and pass your verdict.">
-		<meta name="twitter:image" content="/avatars/{avatar}.png">
+		<title>Android suspect - {details.name} - {details.persona} | Electric Sheep</title>
 	{/await}
 </svelte:head>
 
