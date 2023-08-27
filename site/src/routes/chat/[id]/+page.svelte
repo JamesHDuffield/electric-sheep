@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createChannelStore, type ChatMessage } from '../../../channel/store';
+	import { createChatStore } from '../../../stores/chat';
 	import type { PageData } from './$types';
 	import { getChatDetails, type InterviewResult } from './service';
 	import Button from '../../../components/Button.svelte';
@@ -29,7 +29,7 @@
 			return details;
 		});
 
-	const messages = createChannelStore(data.id);
+	const messages = createChatStore(data.id);
 
 	async function send() {
 		if (!reply) {
