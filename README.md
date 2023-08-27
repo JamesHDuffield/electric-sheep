@@ -15,7 +15,7 @@ Inspired by Philip K. Dick's novel [Do Androids Dream of Electric Sheep?](https:
 
 ## Development
 
-- Copy `.devcontainer/.env.example` to `.devcontainer/.env` and provide open api key
+- Copy `.devcontainer/.env.example` to `.devcontainer/.env` and provide an OpenAI API key
 - Open vscode dev container
 - `cargo run`
 - `cd site && npm run watch` to rebuild static site
