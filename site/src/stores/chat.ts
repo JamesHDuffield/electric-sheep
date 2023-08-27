@@ -6,7 +6,7 @@ export interface ChatMessage {
     content: string;
 }
 
-export const createChannelStore = (chat_id: string): Writable<ChatMessage[]> => {
+export const createChatStore = (chat_id: string): Writable<ChatMessage[]> => {
     const store = writable<ChatMessage[]>([]);
 
     const eventSource = new ReconnectingEventSource(`/api/join/${chat_id}`);
