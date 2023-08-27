@@ -22,7 +22,6 @@ Inspired by Philip K. Dick's novel [Do Androids Dream of Electric Sheep?](https:
 
 ## Database Migration / Seeding
 
-- `cargo install diesel_cli --no-default-features --features postgres`
 - `diesel migration run` or `diesel migration redo`
 
 To run the migration to fly.io
