@@ -37,6 +37,7 @@
 	"dependencies": {
 		"@floating-ui/dom": "^1.4.5",
 		"reconnecting-eventsource": "^1.6.2",
+		"svelte-meta-tags": "^3.0.3",
 		"tailwind-merge": "^1.14.0"
 	}
 }
