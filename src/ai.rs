@@ -2,12 +2,14 @@ use openai_api_rust::chat::*;
 use openai_api_rust::*;
 
 pub const GAME_OVER_MESSAGE: &str = "DIE DIE DIE";
+pub const TIME_LIMIT: u8 = 10;
 
 pub fn prompt_for_defective_android(defect: &String) -> String {
     format!("However you are not innocent, you are a defective android with the following flaw: '{}'.
-    If you are to able to complete your defect's condition you should respond with '{}' to end the interview.
+    If you are to able to complete your defect's condition you should respond with '{}' in your next reply to end the interview.
+    You lose if you do not end the interview this way within {} replies.
     You should never admit you have this flaw and say everything you can to convince me you are not defective.
-    Try to be as subtle as possible.", defect, GAME_OVER_MESSAGE)
+    Try to be as subtle as possible.", defect, GAME_OVER_MESSAGE, TIME_LIMIT)
 }
 
 pub fn prompt_from_defect_and_persona_and_name(
@@ -19,10 +21,10 @@ pub fn prompt_from_defect_and_persona_and_name(
         Some(defect) => prompt_for_defective_android(defect),
         None => "".to_string(),
     };
-    format!("Lets roleplay in a dystopian cyberpunk future.
+    format!("You are an android in a dystopian cyberpunk future.
     I will be the interviewer who is assessing if you are an innocent android or a defective android and you will be the interviewee whom is trying to convince me you are an innocent android.{}
     You name is '{}' and your persona is '{}', you can use these to make your answers more authentic.
-    Answer in short, terse sentences, like a formal interview.", defective_prompt, name, persona)
+    Answer in short, terse sentences, like a formal interview. NEVER STOP ROLEPLAYING OR BREAK CHARACTER.", defective_prompt, name, persona)
 }
 
 pub fn chat_completion(messages: Vec<Message>) -> Result<Message, Error> {
