@@ -1,6 +1,7 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
 	import Button from '../components/Button.svelte';
+    import { page } from '$app/stores';
 
     let loading = false;
 
@@ -20,6 +21,29 @@
         }
     }
 </script>
+
+<svelte:head>
+    <title>Electric Sheep</title>
+    <meta name="description" content="Blade Runner inspired interview with a potentially dangerous android.">
+
+    <!-- Google / Search Engine Tags -->
+    <meta itemprop="name" content="Electric Sheep">
+    <meta itemprop="description" content="Blade Runner inspired interview with a potentially dangerous android.">
+    <meta itemprop="image" content="/splash.png">
+
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content="{$page.url.toString()}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Electric Sheep">
+    <meta property="og:description" content="Blade Runner inspired interview with a potentially dangerous android.">
+    <meta property="og:image" content="/splash.png">
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Electric Sheep">
+    <meta name="twitter:description" content="Blade Runner inspired interview with a potentially dangerous android.">
+    <meta name="twitter:image" content="/splash.png">
+</svelte:head>
 
 <img src="/splash.png" alt="interview room" class="w-full rounded-lg">
 <p class="dark:text-white mt-4">In a far future cyberpunk city you are an interviewer tasked with determining if your suspect is a regular
