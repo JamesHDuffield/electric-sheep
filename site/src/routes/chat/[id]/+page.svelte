@@ -10,7 +10,7 @@
 	let reply = '';
 	let writing = false;
 	let gameResult: InterviewResult | undefined = undefined;
-	let avatar = parseInt(data.id[0], 16) + 1; // Uses first letter of chat id to set avatar
+	let avatar = Math.round(parseInt(data.id.slice(0, 2), 16) / 255 * 31) + 1; // Uses first 2 letters of chat id to set avatar (1-32)
 	let status: 'Suspect' | 'Arresting Suspect' | 'Releasing Suspect' | 'Arrested' | 'Released' | 'Murderous' =
 		'Suspect';
 	let reviewing = false;
