@@ -42,10 +42,11 @@ async fn start(db: PgDatabase) -> Result<Json<StartResponse>, ApiError> {
         .run(|connection| {
             // Flip a coin to determine if android is going be a defect
             let is_defective = rand::thread_rng().gen_bool(0.5);
-            let category = Categories::select_random(connection)?;
-            let defect = match is_defective {
-                true => Some(Defect::select_random_from_category(connection, &category)?),
-                false => None,
+            let defect = if is_defective {
+                let category = Categories::select_random(connection)?;
+                Some(Defect::select_random_from_category(connection, &category)?)
+            } else {
+                None
             };
             let persona = Persona::select_random_persona(connection)?;
             let name: String = Name().fake();

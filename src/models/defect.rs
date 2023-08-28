@@ -1,9 +1,9 @@
 use super::Categories;
 use crate::schema::defects;
 use diesel::prelude::*;
-use rand::seq::SliceRandom;
+use diesel::sql_types::Integer;
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Debug, QueryableByName)]
 #[diesel(table_name = defects)]
 pub struct Defect {
     pub id: i32,
@@ -16,12 +16,9 @@ impl Defect {
         connection: &mut PgConnection,
         category: &Categories,
     ) -> QueryResult<String> {
-        let defects = defects::dsl::defects
-            .filter(defects::category_id.eq(category.id))
-            .load::<Defect>(connection)?;
-        let defect = defects
-            .choose(&mut rand::thread_rng())
-            .ok_or(diesel::result::Error::NotFound)?;
-        Ok(defect.text.clone())
+        let defect = diesel::sql_query("SELECT * FROM defects WHERE category_id = $1 OFFSET floor(random() * (SELECT count(1) from defects WHERE category_id = $1)) LIMIT 1")
+            .bind::<Integer, _>(category.id)
+            .get_result::<Self>(connection)?;
+        Ok(defect.text.to_owned())
     }
 }
