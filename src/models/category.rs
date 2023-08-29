@@ -1,8 +1,7 @@
 use crate::schema::categories;
 use diesel::prelude::*;
-use rand::seq::SliceRandom;
 
-#[derive(Queryable, Clone, Debug)]
+#[derive(Queryable, QueryableByName, Clone, Debug)]
 #[diesel(table_name = categories)]
 pub struct Categories {
     pub id: i32,
@@ -11,10 +10,8 @@ pub struct Categories {
 
 impl Categories {
     pub fn select_random(connection: &mut PgConnection) -> QueryResult<Self> {
-        let categories = categories::dsl::categories.load::<Categories>(connection)?;
-        let chosen = categories
-            .choose(&mut rand::thread_rng())
-            .ok_or(diesel::result::Error::NotFound)?;
-        Ok(chosen.clone())
+        let category = diesel::sql_query("SELECT * FROM categories OFFSET floor(random() * (SELECT count(1) from categories)) LIMIT 1")
+            .get_result::<Self>(connection)?;
+        Ok(category.clone())
     }
 }

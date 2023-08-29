@@ -28,15 +28,16 @@ pub fn create_chat(
 }
 
 pub fn get_chat(connection: &mut PgConnection, chat_id: &Uuid) -> QueryResult<Chat> {
-    chats::dsl::chats.find(chat_id).first::<Chat>(connection)
+    chats::dsl::chats.find(chat_id).first(connection)
 }
 
 pub fn get_chat_messages(
     connection: &mut PgConnection,
     chat_id: &Uuid,
 ) -> QueryResult<Vec<Message>> {
-    let messages: Vec<RecordedMessage> = messages::dsl::messages
+    let messages = messages::dsl::messages
         .filter(messages::dsl::chat_id.eq(chat_id))
+        .order(messages::dsl::created_at.asc())
         .load::<RecordedMessage>(connection)?;
     messages
         .into_iter()
