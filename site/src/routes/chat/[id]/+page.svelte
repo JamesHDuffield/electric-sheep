@@ -47,6 +47,11 @@
 			},
 			body
 		});
+
+		if (!response.ok) {
+			return;
+		}
+
 		let replyState: { result: InterviewResult | undefined } = await response.json();
 		if (replyState.result) {
 			status = 'Murderous';
@@ -73,6 +78,12 @@
 			},
 			body: JSON.stringify({ defective: guilty })
 		});
+
+		if (!response.ok) {
+			status = 'Suspect';
+			return;
+		}
+
 		gameResult = await response.json();
 
 		// Wait for suspense...

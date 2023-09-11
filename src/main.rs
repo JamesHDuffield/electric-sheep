@@ -35,16 +35,19 @@ use uuid::Uuid;
 #[database("db")]
 struct PgDatabase(PgConnection);
 
-#[post("/start")]
-async fn start(db: PgDatabase) -> Result<Json<StartResponse>, ApiError> {
+#[post("/start", format = "json", data = "<body>")]
+async fn start(db: PgDatabase, body: Json<StartRequest>) -> Result<Json<StartResponse>, ApiError> {
     // Create a starting prompt and record chat and messages
     let chat_id = db
-        .run(|connection| {
+        .run(move |connection| {
             // Flip a coin to determine if android is going be a defect
             let is_defective = rand::thread_rng().gen_bool(0.5);
             let defect = match is_defective {
                 true => {
-                    let category = Categories::select_random(connection)?;
+                    let category = match &body.difficulty {
+                        Some(difficulty) => Categories::select_by_description(connection, difficulty)?,
+                        None => Categories::select_random(connection)?,
+                    }; 
                     Some(Defect::select_random_from_category(connection, &category)?)
                 },
                 false => None,

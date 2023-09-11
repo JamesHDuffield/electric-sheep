@@ -2,6 +2,12 @@ use openai_api_rust::Message;
 use rocket::serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+#[derive(Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct StartRequest {
+    pub difficulty: Option<String>,
+}
+
 #[derive(Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct StartResponse {
