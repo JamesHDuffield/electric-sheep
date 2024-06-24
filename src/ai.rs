@@ -31,7 +31,7 @@ pub fn chat_completion(messages: Vec<Message>) -> Result<Message, Error> {
     let auth = Auth::from_env().map_err(|error| Error::ApiError(error))?;
     let openai = OpenAI::new(auth, "https://api.openai.com/v1/");
     let body = ChatBody {
-        model: "gpt-4".to_string(),
+        model: "gpt-4o".to_string(),
         max_tokens: Some(100),
         temperature: Some(0_f32),
         top_p: Some(0_f32),
