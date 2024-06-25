@@ -8,7 +8,7 @@ WORKDIR /app
 COPY ./site .
 RUN npm ci && npm run build
 
-FROM debian:bullseye-slim as runner
+FROM debian:bookworm-slim as runner
 COPY --from=builder /usr/local/cargo/bin/electric-sheep /usr/local/bin/electric-sheep
 COPY --from=site /app/build /app/site/build
 ENV ROCKET_ADDRESS=0.0.0.0
