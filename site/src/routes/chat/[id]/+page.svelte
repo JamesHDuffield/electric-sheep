@@ -10,25 +10,35 @@
 	let reply = '';
 	let writing = false;
 	let gameResult: InterviewResult | undefined = undefined;
-	let avatar = Math.round(parseInt(data.id.slice(0, 2), 16) / 255 * 31) + 1; // Uses first 2 letters of chat id to set avatar (1-32)
-	let status: 'Suspect' | 'Arresting Suspect' | 'Releasing Suspect' | 'Arrested' | 'Released' | 'Murderous' =
-		'Suspect';
+	let avatar = Math.round((parseInt(data.id.slice(0, 2), 16) / 255) * 31) + 1; // Uses first 2 letters of chat id to set avatar (1-32)
+	let status:
+		| 'Suspect'
+		| 'Arresting Suspect'
+		| 'Releasing Suspect'
+		| 'Arrested'
+		| 'Released'
+		| 'Murderous' = 'Suspect';
 	let reviewing = false;
 
 	$: interviewOver = status != 'Suspect';
 	$: awaitingVerdict = status == 'Arresting Suspect' || status == 'Releasing Suspect';
-	$: gameOver = status == 'Arrested' || status == 'Released' || status == 'Murderous' && gameResult;
+	$: gameOver =
+		status == 'Arrested' || status == 'Released' || (status == 'Murderous' && gameResult);
 	$: showResults = gameOver && !reviewing;
 
-	const details$ = getChatDetails(data.id)
-		.then((details) => {
-			if (details.result) {
-				gameResult = details.result;
-				status = details.result.attacked ? 'Murderous' : (details.result.win && details.result.defective) || (!details.result.win && !details.result.defective) ? 'Arrested' : 'Released';
-				reviewing = true; // Stops the answer being shown right away
-			}
-			return details;
-		});
+	const details$ = getChatDetails(data.id).then((details) => {
+		if (details.result) {
+			gameResult = details.result;
+			status = details.result.attacked
+				? 'Murderous'
+				: (details.result.win && details.result.defective) ||
+				  (!details.result.win && !details.result.defective)
+				? 'Arrested'
+				: 'Released';
+			reviewing = true; // Stops the answer being shown right away
+		}
+		return details;
+	});
 
 	const messages = createChatStore(data.id);
 
@@ -93,12 +103,13 @@
 	}
 
 	const scrollToBottom = (node: Element, _list: unknown[]) => {
-		const scroll = () => node.scroll({
-			top: node.scrollHeight,
-			behavior: 'smooth',
-		});
+		const scroll = () =>
+			node.scroll({
+				top: node.scrollHeight,
+				behavior: 'smooth'
+			});
 		scroll();
-		return { update: scroll }
+		return { update: scroll };
 	};
 </script>
 
@@ -122,7 +133,9 @@
 				<dl>
 					<dt class="text-xs font-lightweight text-primary-600 dark:text-primary-400">Full name</dt>
 					<dd class="text-md mb-3">{details.name}</dd>
-					<dt class="text-xs font-lightweight text-primary-600 dark:text-primary-400">Occupation</dt>
+					<dt class="text-xs font-lightweight text-primary-600 dark:text-primary-400">
+						Occupation
+					</dt>
 					<dd class="text-md mb-3">{details.persona}</dd>
 					<dt class="text-xs font-lightweight text-primary-600 dark:text-primary-400">Status</dt>
 					<dd class="text-md mb-3">
@@ -165,7 +178,7 @@
 			{:else if reviewing}
 				<div class="pl-2">
 					<button
-						on:click={() => reviewing = false }
+						on:click={() => (reviewing = false)}
 						class="w-full text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded text-sm py-2 dark:bg-gray-700 dark:hover:bg-gray-500 dark:focus:ring-gray-600"
 						>Show Verdict</button
 					>
@@ -175,11 +188,13 @@
 	</div>
 </div>
 
-<div class="flex flex-col flex-grow w-full h-full bg-neutral-200 dark:bg-white shadow-xl rounded-lg overflow-hidden mb-3">
+<div
+	class="flex flex-col flex-grow w-full h-full bg-neutral-200 dark:bg-white shadow-xl rounded-lg overflow-hidden mb-3"
+>
 	{#if $messages}
 		<div use:scrollToBottom={$messages} class="flex flex-col flex-grow h-0 p-4 overflow-auto">
 			{#each $messages as message}
-				{#if message.role == 'assistant'}
+				{#if message.role == 'Assistant'}
 					<div class="flex w-full mt-2 space-x-3 max-w-xs">
 						<img
 							class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300"
@@ -233,43 +248,75 @@
 			type="text"
 			placeholder="Type your message…"
 		/>
-		<Button type='submit' disabled={interviewOver}>➤</Button>
+		<Button type="submit" disabled={interviewOver}>➤</Button>
 	</form>
 </div>
 
-<div class="fixed left-0 top-0 z-[1055] h-full w-full overflow-y-auto overflow-x-hidden outline-none bg-gray-800/50 transition-opacity ease-linear-in delay-500 pointer-events-none" class:opacity-0={!showResults} class:opacity-1={showResults}>
-	<div class="pointer-events-none relative flex min-h-[calc(100%-1rem)] w-auto translate-y-[-50px] items-center min-[576px]:mx-auto min-[576px]:mt-7 min-[576px]:min-h-[calc(100%-3.5rem)] min-[576px]:max-w-[500px]">
-		<div class="relative flex w-full flex-col rounded-md border-none bg-white bg-clip-padding text-current shadow-lg outline-none dark:dark:bg-slate-950" class:pointer-events-auto={showResults}>
-			<button on:click={ () => reviewing = true } class="absolute top-2 right-2 box-content rounded-none border-none hover:no-underline hover:opacity-75 focus:opacity-100 focus:shadow-none focus:outline-none dark:text-white">
-				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-				  </svg>
+<div
+	class="fixed left-0 top-0 z-[1055] h-full w-full overflow-y-auto overflow-x-hidden outline-none bg-gray-800/50 transition-opacity ease-linear-in delay-500 pointer-events-none"
+	class:opacity-0={!showResults}
+	class:opacity-1={showResults}
+>
+	<div
+		class="pointer-events-none relative flex min-h-[calc(100%-1rem)] w-auto translate-y-[-50px] items-center min-[576px]:mx-auto min-[576px]:mt-7 min-[576px]:min-h-[calc(100%-3.5rem)] min-[576px]:max-w-[500px]"
+	>
+		<div
+			class="relative flex w-full flex-col rounded-md border-none bg-white bg-clip-padding text-current shadow-lg outline-none dark:dark:bg-slate-950"
+			class:pointer-events-auto={showResults}
+		>
+			<button
+				on:click={() => (reviewing = true)}
+				class="absolute top-2 right-2 box-content rounded-none border-none hover:no-underline hover:opacity-75 focus:opacity-100 focus:shadow-none focus:outline-none dark:text-white"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="1.5"
+					stroke="currentColor"
+					class="h-6 w-6"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+				</svg>
 			</button>
 			<div class="flex flex-col items-center justify-between rounded-t-md p-4 gap-3">
 				{#if gameResult}
 					{#if gameResult.defective}
 						{#if gameResult.win}
 							<h3 class="dark:text-primary-200">Successful Arrest</h3>
-							<p class="dark:text-white text-sm text-center">Another dangerous android off the streets.</p>
+							<p class="dark:text-white text-sm text-center">
+								Another dangerous android off the streets.
+							</p>
+						{:else if status == 'Murderous'}
+							<h3 class="dark:text-red-500">Android Attack</h3>
+							<p class="dark:text-white text-sm text-center">
+								The android leaps over the table and swiftly executes you.
+							</p>
 						{:else}
-							{#if status == 'Murderous'}
-								<h3 class="dark:text-red-500">Android Attack</h3>
-								<p class="dark:text-white text-sm text-center">The android leaps over the table and swiftly executes you.</p>
-							{:else}
-								<h3 class="dark:text-red-500">Wrongful Release</h3>
-								<p class="dark:text-white text-sm text-center">The android leaves promptly. You are notified via hologram of its crimes later that week; along with your termination from the company.</p>
-							{/if}
+							<h3 class="dark:text-red-500">Wrongful Release</h3>
+							<p class="dark:text-white text-sm text-center">
+								The android leaves promptly. You are notified via hologram of its crimes later that
+								week; along with your termination from the company.
+							</p>
 						{/if}
-						<p class="dark:text-gray-500 text-xs text-center">The android had the following defect: "{gameResult.defect}"</p>
+						<p class="dark:text-gray-500 text-xs text-center">
+							The android had the following defect: "{gameResult.defect}"
+						</p>
 					{:else}
 						{#if gameResult.win}
 							<h3 class="dark:text-primary-200">Successful Release</h3>
-							<p class="dark:text-white text-sm text-center">The suspect thanks you for your service.</p>
+							<p class="dark:text-white text-sm text-center">
+								The suspect thanks you for your service.
+							</p>
 						{:else}
 							<h3 class="dark:text-red-500">Wrongful Arrest</h3>
-							<p class="dark:text-white text-sm text-center">The suspect cries out as they are dragged away by security.</p>
+							<p class="dark:text-white text-sm text-center">
+								The suspect cries out as they are dragged away by security.
+							</p>
 						{/if}
-						<p class="dark:text-gray-500 text-xs text-center">The android was functioning without defect.</p>
+						<p class="dark:text-gray-500 text-xs text-center">
+							The android was functioning without defect.
+						</p>
 					{/if}
 				{/if}
 				<a href="/">
@@ -279,4 +326,3 @@
 		</div>
 	</div>
 </div>
-

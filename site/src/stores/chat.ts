@@ -2,7 +2,7 @@ import { writable, type Writable } from 'svelte/store';
 import ReconnectingEventSource from 'reconnecting-eventsource';
 
 export interface ChatMessage {
-    role: 'assistant' | 'user';
+    role: 'Assistant' | 'User';
     content: string;
 }
 
