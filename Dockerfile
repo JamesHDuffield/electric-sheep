@@ -1,4 +1,4 @@
-FROM rust:1.78-bookworm as builder
+FROM rust:1.88-bookworm as builder
 WORKDIR /app
 COPY . .
 RUN cargo install --path .
