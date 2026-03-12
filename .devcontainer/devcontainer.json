@@ -12,7 +12,7 @@
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {}
 	},
-	"onCreateCommand": "rustup component add rustfmt && cargo install diesel_cli --no-default-features --features postgres",
+	"onCreateCommand": "rustup component add rustfmt && cargo install diesel_cli --version 2.1.0 --no-default-features --features postgres",
 	"customizations": {
 		"vscode": {
 			"extensions": [

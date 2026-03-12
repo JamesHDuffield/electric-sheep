@@ -17,8 +17,9 @@ Inspired by Philip K. Dick's novel [Do Androids Dream of Electric Sheep?](https:
 
 - Copy `.devcontainer/.env.example` to `.devcontainer/.env` and provide an OpenAI API key
 - Open vscode dev container
+- `diesel migration run`
 - `cargo run`
-- `cd site && npm run watch` to rebuild static site
+- `cd site && npm i && npm run watch` to rebuild static site
 
 ## Database Migration / Seeding
 
