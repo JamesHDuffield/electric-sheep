@@ -1,6 +1,6 @@
+use crate::messages::Message;
 use crate::models::{Chat, RecordedMessage};
 use crate::schema::{chats, messages};
-use openai_api_rust::Message;
 use rocket::serde::json::serde_json;
 use rocket_sync_db_pools::diesel::*;
 use uuid::Uuid;

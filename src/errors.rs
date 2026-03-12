@@ -10,7 +10,7 @@ use crate::messages::ErrorResponse;
 pub enum ApiError {
     Database(String),
     NotFound,
-    OpenAPI(String),
+    AI(String),
 }
 
 impl<'r, 'o: 'r> Responder<'r, 'o> for ApiError {
@@ -18,7 +18,7 @@ impl<'r, 'o: 'r> Responder<'r, 'o> for ApiError {
         let (error_message, status) = match self {
             ApiError::NotFound => ("no record with that id".into(), Status::NotFound),
             ApiError::Database(m) => (m, Status::InternalServerError),
-            ApiError::OpenAPI(m) => (m, Status::InternalServerError),
+            ApiError::AI(m) => (m, Status::InternalServerError),
         };
         Response::build_from(Json(ErrorResponse { error_message }).respond_to(req)?)
             .status(status)
@@ -35,8 +35,8 @@ impl From<diesel::result::Error> for ApiError {
     }
 }
 
-impl From<openai_api_rust::Error> for ApiError {
-    fn from(value: openai_api_rust::Error) -> Self {
-        Self::OpenAPI(format!("OpenAPI Error: {}", value))
+impl From<Box<dyn std::error::Error>> for ApiError {
+    fn from(value: Box<dyn std::error::Error>) -> Self {
+        Self::AI(format!("AI Error: {}", value))
     }
 }

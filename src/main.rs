@@ -17,8 +17,6 @@ use fake::faker::name::en::Name;
 use fake::Fake;
 use messages::*;
 use models::*;
-use openai_api_rust::Message;
-use openai_api_rust::Role;
 use rand::Rng;
 use rocket::fs::NamedFile;
 use rocket::fs::{relative, FileServer};
@@ -45,11 +43,13 @@ async fn start(db: PgDatabase, body: Json<StartRequest>) -> Result<Json<StartRes
             let defect = match is_defective {
                 true => {
                     let category = match &body.difficulty {
-                        Some(difficulty) => Categories::select_by_description(connection, difficulty)?,
+                        Some(difficulty) => {
+                            Categories::select_by_description(connection, difficulty)?
+                        }
                         None => Categories::select_random(connection)?,
-                    }; 
+                    };
                     Some(Defect::select_random_from_category(connection, &category)?)
-                },
+                }
                 false => None,
             };
             let persona = Persona::select_random_persona(connection)?;
@@ -153,7 +153,7 @@ async fn reply(
     // Append new message
     history.push(user_message.clone());
     // Send to AI
-    let ai_response = ai::chat_completion(history)?;
+    let ai_response = ai::chat_completion(history).await?;
     // Check to see if ai won
     let lose = ai_response.content.contains(GAME_OVER_MESSAGE);
     // Notify queue - A send 'fails' if there are no active subscribers. That's okay.

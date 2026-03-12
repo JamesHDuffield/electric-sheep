@@ -1,6 +1,18 @@
-use openai_api_rust::Message;
 use rocket::serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Role {
+    System,
+    User,
+    Assistant,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Message {
+    pub role: Role,
+    pub content: String,
+}
 
 #[derive(Deserialize)]
 #[serde(crate = "rocket::serde")]

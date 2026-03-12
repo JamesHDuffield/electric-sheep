@@ -3,7 +3,7 @@ services:
   dev:
     image: rust:1.88
     environment:
-      - OPENAI_API_KEY
+      - GEMINI_API_KEY
       - ROCKET_DATABASES={db={url="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_USER}"}}
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_USER}
     volumes:
